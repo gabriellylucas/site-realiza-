@@ -1,0 +1,252 @@
+
+body {
+    background-color: #FFFFFF;
+    color: #000000; 
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+
+.contato-page {
+    background-color: #FFFFFF;
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    padding-top: 80px;
+    box-sizing: border-box;
+}
+
+
+.cabecalho-contato {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    margin-bottom: 50px;
+}
+
+.cabecalho-contato h1 {
+    font-size: 42px;
+    font-weight: 800;
+    color: #0E9FA2; 
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.cabecalho-contato p {
+    font-size: 18px;
+    color: #1a1a1a; 
+    margin-top: 12px;
+    font-weight: 500;
+}
+
+.linha-decorativa-cyan {
+    height: 4px;
+    width: 60px;
+    background-color: #0E9FA2;
+    margin-top: 20px;
+    border-radius: 2px;
+}
+
+
+.contato-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 40px;
+    max-width: 1200px;
+    width: 90%;
+    margin: 0 auto 80px;
+    padding: 20px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+
+.card-equipe {
+    background-color: #F8FAFC; 
+    padding: 40px;
+    border-radius: 20px;
+    flex: 1;
+    min-width: 350px;
+    border: 1px solid #E5E7EB;
+}
+
+.card-equipe h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 30px;
+}
+
+.equipe-nome {
+    font-weight: bold;
+    font-size: 18px;
+    color: #000000; 
+    margin: 0;
+}
+
+.equipe-cargo {
+    color: #0E9FA2;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    margin: 4px 0 12px;
+}
+
+.equipe-contato p {
+    color: #1a1a1a; 
+    font-size: 14px;
+}
+
+
+.card-form {
+    background-color: #FFFFFF;
+    padding: 40px;
+    border-radius: 20px;
+    flex: 1.5;
+    min-width: 350px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    border: 1px solid #F1F5F9;
+}
+
+.card-form h2 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #000000;
+    margin-bottom: 8px;
+}
+
+.card-form p.subtitulo {
+    color: #4B5563; 
+    font-size: 14px;
+    margin-bottom: 35px;
+}
+
+.label-field {
+    font-size: 11px;
+    font-weight: 700;
+    color: #000000 !important; 
+    margin-bottom: 6px;
+    display: block;
+    text-transform: uppercase;
+}
+
+
+.input-field {
+    width: 100%;
+    background-color: #F3F4F6;
+    border: 1px solid #E5E7EB;
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: #000000 !important; 
+    font-size: 15px;
+    margin-top: 8px;
+    box-sizing: border-box;
+}
+
+
+.input-field::placeholder {
+    color: #6B7280; /
+}
+
+.input-field:focus {
+    outline: none;
+    border-color: #0E9FA2;
+    background-color: #FFFFFF;
+    color: #000000;
+}
+
+.btn-enviar-contato {
+    background-color: #0E9FA2; 
+    color: #ffffff; 
+    font-weight: 600;
+    border: none;
+    padding: 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    text-transform: uppercase;
+    transition: filter 0.3s;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.btn-enviar-contato:hover {
+    filter: brightness(0.9);
+}
+
+.mensagem-sucesso {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+  text-align: center;
+  border: 1px solid #c3e6cb;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #F3F4F6 inset !important;
+  box-shadow: 0 0 0 30px #F3F4F6 inset !important;
+}
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #F3F4F6 inset !important;
+  box-shadow: 0 0 0 30px #F3F4F6 inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+}
+
+.btn-enviar-contato:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.btn-enviar-contato:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.btn-ver-mensagens {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #0E9FA2, #136a73);
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-ver-mensagens:hover {
+  transform: translateY(-2px);
+}
