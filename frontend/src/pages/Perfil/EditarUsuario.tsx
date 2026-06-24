@@ -95,7 +95,7 @@ export default function EditarUsuario() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/users/update/${user?.id}`, {
+      const response = await fetch(`/api/users/update/${user?.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -139,7 +139,7 @@ export default function EditarUsuario() {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/users/delete/${user?.id}`, {
+      const response = await fetch(`/api/users/delete/${user?.id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

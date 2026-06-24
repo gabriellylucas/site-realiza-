@@ -19,7 +19,7 @@ describe("Produtos", () => {
     render(<Produtos />);
 
     await waitFor(() => {
-      expect(mockedAxios.get).toHaveBeenCalledWith("http://localhost:3000/produtos");
+      expect(mockedAxios.get).toHaveBeenCalledWith("/api/produtos");
     });
   });
 

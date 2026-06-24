@@ -151,7 +151,7 @@ describe("Login", () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        "http://localhost:3000/users/login",
+        "/api/users/login",
         expect.objectContaining({
           method: "POST",
           headers: { "Content-Type": "application/json" },

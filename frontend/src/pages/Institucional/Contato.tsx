@@ -37,7 +37,7 @@ export default function Contato() {
     }
 
     try {
-      const response = await fetch("http://localhost:3000/contatos", {
+      const response = await fetch("/api/contatos", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

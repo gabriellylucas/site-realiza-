@@ -213,7 +213,7 @@ export default function MeusOrcamentos() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/orcamentos?page=${pagina}&limit=${limite}`,
+        `/api/orcamentos?page=${pagina}&limit=${limite}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -245,7 +245,7 @@ export default function MeusOrcamentos() {
     if (!confirmar) return;
 
     try {
-      const response = await fetch(`http://localhost:3000/orcamentos/${id}`, {
+      const response = await fetch(`/api/orcamentos/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

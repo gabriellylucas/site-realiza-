@@ -208,7 +208,7 @@ describe("Cadastro", () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        "http://localhost:3000/users/register",
+        "/api/users/register",
         expect.objectContaining({
           method: "POST",
           headers: { "Content-Type": "application/json" },

@@ -38,7 +38,7 @@ export default function EditarContato() {
 
   async function carregarContato(): Promise<void> {
     try {
-      const response = await fetch(`http://localhost:3000/contatos/${id}`, {
+      const response = await fetch(`/api/contatos/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,7 +77,7 @@ export default function EditarContato() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/contatos/${id}`, {
+      const response = await fetch(`/api/contatos/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
