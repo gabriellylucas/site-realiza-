@@ -25,8 +25,14 @@ export class ContatoModel {
   }
 
   static async findAllWithPagination(limit: number, offset: number) {
+  try {
+    console.log("ENTROU NO findAllWithPagination");
+
     const countQuery = `SELECT COUNT(*) as total FROM contatos`;
     const [countRows] = await connection.execute<CountRow[]>(countQuery);
+
+    console.log("COUNT OK", countRows);
+
     const total = countRows[0].total;
 
     const query = `
@@ -37,11 +43,17 @@ export class ContatoModel {
 
     const [rows] = await connection.execute<Contato[]>(query, [limit, offset]);
 
+    console.log("SELECT OK", rows);
+
     return {
       contatos: rows,
       total
     };
+  } catch (error) {
+    console.error("ERRO MODEL:", error);
+    throw error;
   }
+}
 
   static async findById(id: number) {
     const query = `SELECT * FROM contatos WHERE id = ?`;

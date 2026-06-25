@@ -26,7 +26,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-   baseURL: 'https://127.0.0.1', // 👈 ATUALIZADO PARA O DOMÍNIO LOCAL CORRETO!
+  baseURL: 'https://realiza.local',// 👈 ATUALIZADO PARA O DOMÍNIO LOCAL CORRETO!
 
     /* Ignora o erro de certificado (tela vermelha) para o robô testar em HTTPS local */
     ignoreHTTPSErrors: true, // 👈 ADICIONADO PARA IGNORAR O AVISO DE PRIVACIDADE!
