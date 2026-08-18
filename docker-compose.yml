@@ -15,6 +15,9 @@ services:
     build: ./backend
     env_file:
       - .env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
     depends_on:
       - mysql
     networks:
