@@ -14,6 +14,7 @@ interface User {
   email: string;
   cpf: string;
   senha: string;
+  role: "admin" | "usuario";
 }
 
 interface RegisterBody {
@@ -181,7 +182,7 @@ async function gerarSenhaHash(senha: string): Promise<string> {
 }
 
 function gerarToken(user: User): string {
-  return jwt.sign({ id: user.id }, "segredo_super_secreto", { expiresIn: "1h" });
+  return jwt.sign({ id: user.id, role: user.role }, "segredo_super_secreto", { expiresIn: "1h" });
 }
 
 function montarRespostaLogin(user: User, token: string) {
@@ -192,7 +193,8 @@ function montarRespostaLogin(user: User, token: string) {
       id: user.id,
       nome: user.nome,
       email: user.email,
-      cpf: user.cpf
+      cpf: user.cpf,
+      role: user.role
     }
   };
 }
@@ -319,13 +321,13 @@ export class UserController {
     }
   }
 
-  static async list(req: Request, res: Response) {
+     static async list(req: Request, res: Response) {
     try {
       const resultado = await listarUsuarios(req);
       return res.status(200).json(resultado);
     } catch (error) {
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao buscar usuários");
+      return tratarErro(erroTratado, res, "Erro ao buscar usuÃ¡rios");
     }
   }
 
