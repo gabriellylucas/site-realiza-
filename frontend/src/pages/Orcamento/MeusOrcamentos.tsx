@@ -197,6 +197,7 @@ export default function MeusOrcamentos() {
 
   const limite = 5;
   const token = localStorage.getItem("token");
+  console.log("Token:", token);
 
   useEffect(() => {
     if (!token) {

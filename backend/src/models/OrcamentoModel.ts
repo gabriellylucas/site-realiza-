@@ -75,7 +75,7 @@ export class OrcamentoModel {
       LIMIT ? OFFSET ?
     `;
 
-    const [rows] = await connection.execute<OrcamentoDB[]>(sql, [userId, limit, offset]);
+    const [rows] = await connection.query<OrcamentoDB[]>(sql, [userId, limit, offset]);
 
     return {
       orcamentos: rows,
