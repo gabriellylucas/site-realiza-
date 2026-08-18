@@ -11,6 +11,7 @@ interface UserDB extends RowDataPacket {
   email: string;
   senha: string;
   cpf: string;
+  role: "admin" | "usuario";
   created_at?: string;
 }
 
@@ -41,14 +42,12 @@ export class UserModel {
     const countSql = `SELECT COUNT(*) as total FROM users`;
     const [countRows] = await connection.execute<CountRow[]>(countSql);
     const total = countRows[0].total;
-
     const sql = `
-      SELECT id, nome, email, cpf, created_at
+      SELECT id, nome, email, cpf, role, created_at
       FROM users
-      LIMIT ? OFFSET ?
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
-    const [rows] = await connection.execute<UserDB[]>(sql, [limit, offset]);
-
+    const [rows] = await connection.query<UserDB[]>(sql);
     return {
       usuarios: rows,
       total

@@ -89,9 +89,9 @@ CREATE TABLE `users` (
   `email` varchar(150) NOT NULL,
   `senha` varchar(255) NOT NULL,
   `cpf` varchar(14) NOT NULL,
+  `role` enum('admin','usuario') NOT NULL DEFAULT 'usuario',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 --
 -- Despejando dados para a tabela `users`
 --
