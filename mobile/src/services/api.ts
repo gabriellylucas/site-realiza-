@@ -1,13 +1,13 @@
 import axios from "axios";
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 function obterApiUrl(): string {
-  // Se houver uma URL fixa definida no .env, ela tem prioridade
+
   if (process.env.EXPO_PUBLIC_API_URL) {
     return process.env.EXPO_PUBLIC_API_URL;
   }
 
-  // Caso contrário, descobre o IP automaticamente a partir do Expo
   const hostUri = Constants.expoConfig?.hostUri;
 
   if (!hostUri) {
@@ -25,4 +25,13 @@ const api = axios.create({
   baseURL: apiUrl,
 });
 
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export default api;
+

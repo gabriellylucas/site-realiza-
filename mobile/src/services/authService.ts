@@ -22,3 +22,8 @@ export async function login(email: string, senha: string): Promise<LoginResponse
 
   return response.data;
 }
+
+export async function registrar(nome: string, email: string, senha: string, cpf: string) {
+  const response = await api.post("/users/register", { nome, email, senha, cpf });
+  return response.data;
+}
