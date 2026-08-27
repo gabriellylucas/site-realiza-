@@ -11,50 +11,56 @@ import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { LinearGradient } from "expo-linear-gradient";
-import { login } from "../services/authService";
+import { registrar } from "../services/authService";
 
-type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
+type CadastroScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Cadastro">;
 
 function validarEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export default function LoginScreen() {
-  const navigation = useNavigation<LoginScreenNavigationProp>();
+export default function CadastroScreen() {
+  const navigation = useNavigation<CadastroScreenNavigationProp>();
+
+  const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
+  const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+
   const [erro, setErro] = useState("");
   const [carregando, setCarregando] = useState(false);
 
-  async function handleLogin() {
-    setErro("");
-
-    if (!email || !senha) {
-      setErro("Preencha todos os campos!");
-      return;
+  function validar(): boolean {
+    if (!nome.trim() || !email.trim() || !cpf.trim() || !senha) {
+      setErro("Preencha todos os campos");
+      return false;
     }
-
     if (!validarEmail(email)) {
-      setErro("Digite um email válido");
-      return;
+      setErro("Email inválido");
+      return false;
     }
-
     if (senha.length < 6) {
       setErro("Senha muito curta");
-      return;
+      return false;
     }
+    if (senha !== confirmarSenha) {
+      setErro("As senhas não coincidem");
+      return false;
+    }
+    return true;
+  }
+
+  async function handleCadastro() {
+    setErro("");
+    if (!validar()) return;
 
     setCarregando(true);
-
     try {
-      await login(email, senha);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "Orcamentos" }],
-      });
+      await registrar(nome.trim(), email.trim(), senha, cpf.replace(/\D/g, ""));
+      navigation.navigate("Login");
     } catch (error: any) {
-      const mensagem = error?.response?.data?.message || "Erro ao conectar com o servidor";
-      setErro(mensagem);
+      setErro(error?.response?.data?.message || "Erro ao cadastrar");
     } finally {
       setCarregando(false);
     }
@@ -62,12 +68,22 @@ export default function LoginScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.marca}>Realiza</Text>
-      <Text style={styles.marcaSubtitulo}>Sistemas de Combate a Incêndio</Text>
+      <TouchableOpacity style={styles.voltar} onPress={() => navigation.goBack()}>
+        <Text style={styles.voltarTexto}>← Voltar</Text>
+      </TouchableOpacity>
+
+      <Text style={styles.title}>Cadastro</Text>
+      <Text style={styles.subtitle}>Crie sua conta gratuitamente</Text>
 
       <View style={styles.card}>
-        <Text style={styles.title}>Login</Text>
-        <Text style={styles.subtitle}>Acesse sua conta</Text>
+        <Text style={styles.label}>Nome completo</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="João da Silva"
+          placeholderTextColor="#8a8f99"
+          value={nome}
+          onChangeText={setNome}
+        />
 
         <Text style={styles.label}>E-mail</Text>
         <TextInput
@@ -80,6 +96,16 @@ export default function LoginScreen() {
           keyboardType="email-address"
         />
 
+        <Text style={styles.label}>CPF</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="000.000.000-00"
+          placeholderTextColor="#8a8f99"
+          value={cpf}
+          onChangeText={setCpf}
+          keyboardType="numeric"
+        />
+
         <Text style={styles.label}>Senha</Text>
         <TextInput
           style={styles.input}
@@ -90,9 +116,19 @@ export default function LoginScreen() {
           secureTextEntry
         />
 
+        <Text style={styles.label}>Confirmar senha</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="••••••••"
+          placeholderTextColor="#8a8f99"
+          value={confirmarSenha}
+          onChangeText={setConfirmarSenha}
+          secureTextEntry
+        />
+
         {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
-        <TouchableOpacity onPress={handleLogin} disabled={carregando} activeOpacity={0.85}>
+        <TouchableOpacity onPress={handleCadastro} disabled={carregando} activeOpacity={0.85}>
           <LinearGradient
             colors={["#ff8a1e", "#ff4d1c"]}
             start={{ x: 0, y: 0 }}
@@ -102,50 +138,31 @@ export default function LoginScreen() {
             {carregando ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.botaoTexto}>Entrar</Text>
+              <Text style={styles.botaoTexto}>Cadastrar</Text>
             )}
           </LinearGradient>
         </TouchableOpacity>
       </View>
-
-        <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
-        <Text style={styles.link}>
-          Não tem conta? <Text style={styles.linkDestaque}>Cadastre-se</Text>
-        </Text>
-      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+    container: {
     flex: 1,
-    justifyContent: "center",
-    padding: 24,
     backgroundColor: "#0d1220",
+    padding: 24,
+    justifyContent: "center",
   },
-  marca: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "#ff7a2a",
-    textAlign: "center",
-    marginBottom: 2,
+  voltar: {
+    marginBottom: 16,
   },
-  marcaSubtitulo: {
-    fontSize: 12,
+  voltarTexto: {
     color: "#a8adc0",
-    textAlign: "center",
-    marginBottom: 24,
-  },
-  card: {
-    backgroundColor: "#171c2c",
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#232a3d",
-    padding: 20,
+    fontSize: 14,
   },
   title: {
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: "bold",
     color: "#fff",
     marginBottom: 2,
@@ -154,6 +171,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#a8adc0",
     marginBottom: 20,
+  },
+  card: {
+    backgroundColor: "#171c2c",
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#232a3d",
+    padding: 20,
   },
   label: {
     fontSize: 13,
@@ -175,24 +199,15 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: "center",
   },
-    botao: {
+  botao: {
     padding: 14,
     borderRadius: 8,
     alignItems: "center",
+    marginTop: 4,
   },
   botaoTexto: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
-  },
-  link: {
-    color: "#a8adc0",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 13,
-  },
-  linkDestaque: {
-    color: "#ff7a2a",
-    fontWeight: "600",
   },
 });
