@@ -12,6 +12,7 @@ interface UserDB extends RowDataPacket {
   senha: string;
   cpf: string;
   role: "admin" | "usuario";
+  foto_url?: string | null;
   created_at?: string;
 }
 
@@ -64,8 +65,13 @@ export class UserModel {
     await connection.execute(query, [nome, senha, cpf, id]);
   }
 
-  static async delete(id: number) {
+    static async delete(id: number) {
     const query = `DELETE FROM users WHERE id = ?`;
     await connection.execute(query, [id]);
+  }
+
+  static async atualizarFoto(id: number, fotoUrl: string) {
+    const query = `UPDATE users SET foto_url = ? WHERE id = ?`;
+    await connection.execute(query, [fotoUrl, id]);
   }
 }

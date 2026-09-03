@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
 import { connection } from "./services/database";
 import userRoutes from "./routes/userRoutes";
 import ProdutoRoutes from "./routes/ProdutoRoutes";
@@ -13,6 +14,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.use("/users", userRoutes);
 app.use("/produtos", ProdutoRoutes);
 app.use("/orcamentos", OrcamentoRoutes);

@@ -2,6 +2,7 @@ import { Router } from "express";
 import { UserController } from "../controllers/UserController";
 import { authMiddleware } from "../middlewares/authMiddleware";
 import { isAdmin } from "../middlewares/isAdmin";
+import { uploadFoto } from "../config/multerConfig";
 
 const router = Router();
 
@@ -15,5 +16,6 @@ router.get("/perfil", authMiddleware, (req, res) => {
 
 router.put("/update/:id", authMiddleware, UserController.update);
 router.delete("/delete/:id", authMiddleware, UserController.delete);
+router.post("/foto", authMiddleware, uploadFoto.single("foto"), UserController.uploadFoto);
 
 export default router;

@@ -69,10 +69,18 @@ export default function OrcamentosScreen() {
     );
   }
 
-    return (
+  return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.saudacao}>Olá, {nomeUsuario} 👋</Text>
-      <Text style={styles.titulo}>Meus orçamentos</Text>
+      <View style={styles.cabecalho}>
+        <View>
+          <Text style={styles.saudacao}>Olá, {nomeUsuario} 👋</Text>
+          <Text style={styles.titulo}>Meus orçamentos</Text>
+        </View>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+          <Ionicons name="person-circle-outline" size={32} color="#a8adc0" />
+        </TouchableOpacity>
+      </View>
 
       {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
@@ -140,15 +148,16 @@ export default function OrcamentosScreen() {
         >
           <Ionicons name="add" size={20} color="#fff" />
           <Text style={styles.botaoTexto}>Novo orçamento</Text>
-                </LinearGradient>
+        </LinearGradient>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d1220", padding: 16, paddingTop: 50 },
+  container: { flex: 1, backgroundColor: "#0d1220", padding: 16 },
   centro: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0d1220" },
+  cabecalho: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
   saudacao: { color: "#a8adc0", fontSize: 14, marginBottom: 2 },
   titulo: { color: "#ff7a2a", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
   erro: { color: "#ff6b6b", marginBottom: 12 },

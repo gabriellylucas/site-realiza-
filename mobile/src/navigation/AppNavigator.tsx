@@ -4,12 +4,14 @@ import LoginScreen from "../screens/LoginScreen";
 import OrcamentosScreen from "../screens/OrcamentosScreen";
 import CadastroScreen from "../screens/CadastroScreen";
 import CriarOrcamentoScreen from "../screens/CriarOrcamentoScreen";
+import PerfilScreen from "../screens/PerfilScreen";
 
 export type RootStackParamList = {
   Login: undefined;
   Cadastro: undefined;
   Orcamentos: undefined;
   CriarOrcamento: undefined;
+  Perfil: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -33,9 +35,14 @@ export default function AppNavigator() {
           component={OrcamentosScreen}
           options={{ headerShown: false }}
         />
-         <Stack.Screen
+        <Stack.Screen
           name="CriarOrcamento"
           component={CriarOrcamentoScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Perfil"
+          component={PerfilScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>
