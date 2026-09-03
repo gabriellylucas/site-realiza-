@@ -90,6 +90,7 @@ CREATE TABLE `users` (
   `senha` varchar(255) NOT NULL,
   `cpf` varchar(14) NOT NULL,
   `role` enum('admin','usuario') NOT NULL DEFAULT 'usuario',
+  `foto_url` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 --
