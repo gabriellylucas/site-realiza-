@@ -242,4 +242,16 @@ export class OrcamentoController {
       return tratarErro(erroTratado, res, "Erro ao deletar orçamento");
     }
   }
+
+  static async marcarComoLido(req: Request, res: Response) {
+    try {
+      const userId = (req as AuthRequest).userId;
+      const id = Number(req.params.id);
+      await OrcamentoModel.marcarStatusComoLido(id, userId);
+      return res.status(200).json({ message: "Marcado como lido" });
+    } catch (error) {
+      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
+      return tratarErro(erroTratado, res, "Erro ao marcar como lido");
+    }
+  }
 }

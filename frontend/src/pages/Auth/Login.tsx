@@ -71,10 +71,15 @@ export default function Login() {
           nome: data.user.nome,
           email: data.user.email,
           cpf: data.user.cpf,
+          role: data.user.role,
         });
       }
 
-      navigate("/");
+      if (data.user?.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       setErro("Erro ao conectar com o servidor");
     }
