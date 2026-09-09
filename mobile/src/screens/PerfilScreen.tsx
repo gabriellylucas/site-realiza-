@@ -14,6 +14,7 @@ import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { uploadFotoPerfil } from "../services/authService";
+import { apiUrl } from "../services/api";
 
 interface Usuario {
   id: number;
@@ -48,8 +49,8 @@ export default function PerfilScreen() {
       return;
     }
 
-    const resultado = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.7,
@@ -96,8 +97,8 @@ export default function PerfilScreen() {
       <View style={styles.avatarContainer}>
         <TouchableOpacity onPress={escolherFoto} disabled={enviando}>
           {usuario.foto_url ? (
-            <Image
-              source={{ uri: `${process.env.EXPO_PUBLIC_API_URL || ""}${usuario.foto_url}` }}
+              <Image
+              source={{ uri: `${apiUrl}${usuario.foto_url}` }}
               style={styles.avatar}
             />
           ) : (

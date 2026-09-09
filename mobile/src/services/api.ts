@@ -18,7 +18,7 @@ function obterApiUrl(): string {
   return `http://${ip}/api`;
 }
 
-const apiUrl = obterApiUrl();
+export const apiUrl = obterApiUrl();
 console.log("API URL detectada automaticamente:", apiUrl);
 
 const api = axios.create({

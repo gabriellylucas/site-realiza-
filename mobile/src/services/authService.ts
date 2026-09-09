@@ -41,9 +41,7 @@ export async function uploadFotoPerfil(uri: string) {
     type: tipo,
   } as any);
 
-  const response = await api.post("/users/foto", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
+ const response = await api.post("/users/foto", formData);
 
   return response.data as { message: string; fotoUrl: string };
 }
