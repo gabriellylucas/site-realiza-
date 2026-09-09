@@ -54,6 +54,16 @@ export class UserModel {
     };
   }
 
+  static async findAll() {
+    const sql = `
+      SELECT id, nome, email, cpf, role, created_at
+      FROM users
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await connection.query<UserDB[]>(sql);
+    return rows;
+  }
+
   static async updateWithoutEmail(id: number, nome: string, senha: string, cpf: string) {
     const query = `
       UPDATE users

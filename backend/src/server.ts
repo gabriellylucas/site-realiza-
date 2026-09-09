@@ -6,6 +6,8 @@ import userRoutes from "./routes/userRoutes";
 import ProdutoRoutes from "./routes/ProdutoRoutes";
 import OrcamentoRoutes from "./routes/OrcamentoRoutes";
 import contatoRoutes from "./routes/ContatoRoutes";
+import adminRoutes from "./routes/adminRoutes";
+import relatorioRoutes from "./routes/relatorioRoutes";
 
 dotenv.config();
 
@@ -17,6 +19,8 @@ app.use("/users", userRoutes);
 app.use("/produtos", ProdutoRoutes);
 app.use("/orcamentos", OrcamentoRoutes);
 app.use("/contatos", contatoRoutes);
+app.use("/admin", adminRoutes);
+app.use("/relatorios", relatorioRoutes);
 
 app.get("/", (req, res) => {
   return res.status(200).json({ message: "API funcionando 🚀" });

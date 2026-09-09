@@ -11,6 +11,7 @@ interface Orcamento {
   quantidade_total_kg: number;
   investimento_total: number;
   status: string;
+  status_lido: boolean | number;
   created_at: string;
 }
 
@@ -32,6 +33,7 @@ interface CardOrcamentoProps {
   orcamento: Orcamento;
   onEditar: (id: number) => void;
   onExcluir: (id: number) => void;
+  onMarcarLido: (id: number) => void;
   formatarData: (data: string) => string;
   formatarValor: (valor: number) => string;
 }
@@ -40,6 +42,7 @@ interface ListaOrcamentosProps {
   orcamentos: Orcamento[];
   onEditar: (id: number) => void;
   onExcluir: (id: number) => void;
+  onMarcarLido: (id: number) => void;
   formatarData: (data: string) => string;
   formatarValor: (valor: number) => string;
 }
@@ -79,11 +82,23 @@ function CardOrcamento({
   orcamento,
   onEditar,
   onExcluir,
+  onMarcarLido,
   formatarData,
   formatarValor,
 }: CardOrcamentoProps) {
+  const naoLido = Number(orcamento.status_lido) === 0;
+
   return (
-    <div className="orcamento-card">
+    <div className={`orcamento-card ${naoLido ? "orcamento-card-destaque" : ""}`}>
+      {naoLido && (
+        <div className="aviso-status-atualizado">
+          <span>🔔 Status atualizado!</span>
+          <button onClick={() => onMarcarLido(orcamento.id)} className="btn-ok-aviso">
+            OK, entendi
+          </button>
+        </div>
+      )}
+
       <div className="orcamento-header">
         <h3>{orcamento.empresa}</h3>
 
@@ -135,6 +150,7 @@ function ListaOrcamentos({
   orcamentos,
   onEditar,
   onExcluir,
+  onMarcarLido,
   formatarData,
   formatarValor,
 }: ListaOrcamentosProps) {
@@ -146,6 +162,7 @@ function ListaOrcamentos({
           orcamento={orcamento}
           onEditar={onEditar}
           onExcluir={onExcluir}
+          onMarcarLido={onMarcarLido}
           formatarData={formatarData}
           formatarValor={formatarValor}
         />
@@ -197,7 +214,6 @@ export default function MeusOrcamentos() {
 
   const limite = 5;
   const token = localStorage.getItem("token");
-  console.log("Token:", token);
 
   useEffect(() => {
     if (!token) {
@@ -276,6 +292,25 @@ export default function MeusOrcamentos() {
     }
   }
 
+  async function marcarComoLido(id: number): Promise<void> {
+    try {
+      await fetch(`/api/orcamentos/${id}/marcar-lido`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setOrcamentos((atual) =>
+        atual.map((orcamento) =>
+          orcamento.id === id ? { ...orcamento, status_lido: 1 } : orcamento
+        )
+      );
+    } catch (error) {
+      setErro("Erro ao marcar aviso como lido.");
+    }
+  }
+
   function formatarData(data: string): string {
     return new Date(data).toLocaleDateString("pt-BR");
   }
@@ -347,6 +382,7 @@ export default function MeusOrcamentos() {
               orcamentos={orcamentos}
               onEditar={editarOrcamento}
               onExcluir={excluirOrcamento}
+              onMarcarLido={marcarComoLido}
               formatarData={formatarData}
               formatarValor={formatarValor}
             />
