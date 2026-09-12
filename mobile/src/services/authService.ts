@@ -10,6 +10,7 @@ interface LoginResponse {
     email: string;
     cpf: string;
     role: "admin" | "usuario";
+    foto_url?: string | null;
   };
 }
 

@@ -49,7 +49,7 @@ export default function PerfilScreen() {
       return;
     }
 
-      const resultado = await ImagePicker.launchImageLibraryAsync({
+    const resultado = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       allowsEditing: true,
       aspect: [1, 1],
@@ -97,7 +97,7 @@ export default function PerfilScreen() {
       <View style={styles.avatarContainer}>
         <TouchableOpacity onPress={escolherFoto} disabled={enviando}>
           {usuario.foto_url ? (
-              <Image
+            <Image
               source={{ uri: `${apiUrl}${usuario.foto_url}` }}
               style={styles.avatar}
             />
