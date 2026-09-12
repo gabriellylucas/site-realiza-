@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -16,7 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import { listarOrcamentos, Orcamento } from "../services/orcamentoService";
+import { listarOrcamentos, deletarOrcamento, Orcamento } from "../services/orcamentoService";
 import { apiUrl } from "../services/api";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Orcamentos">;
@@ -59,11 +60,35 @@ export default function OrcamentosScreen() {
     }
   }
 
-  useFocusEffect(
+   useFocusEffect(
     useCallback(() => {
       carregarOrcamentos();
     }, [])
   );
+
+  function confirmarExclusao(id: number) {
+    Alert.alert(
+      "Excluir orçamento",
+      "Tem certeza que deseja excluir este orçamento? Essa ação não pode ser desfeita.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => excluirOrcamento(id),
+        },
+      ]
+    );
+  }
+
+  async function excluirOrcamento(id: number) {
+    try {
+      await deletarOrcamento(id);
+      carregarOrcamentos();
+    } catch (error: any) {
+      Alert.alert("Erro", error?.response?.data?.message || "Não foi possível excluir o orçamento");
+    }
+  }
 
   if (carregando) {
     return (
@@ -133,12 +158,35 @@ export default function OrcamentosScreen() {
                 Quantidade: <Text style={styles.destaque}>{item.quantidade_total_kg} kg</Text>
               </Text>
 
-              <View style={styles.rodapeCard}>
+                <View style={styles.rodapeCard}>
                 <View>
                   <Text style={styles.investimentoLabel}>Investimento</Text>
                   <Text style={styles.investimentoValor}>
                     R$ {Number(item.investimento_total).toFixed(2)}
                   </Text>
+                </View>
+
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate("EditarOrcamento", {
+                        id: item.id,
+                        empresaAtual: item.empresa,
+                        cnpjAtual: item.cnpj,
+                        localAtual: item.local,
+                      })
+                    }
+                    style={styles.botaoEditar}
+                  >
+                    <Ionicons name="create-outline" size={18} color="#ff7a2a" />
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    onPress={() => confirmarExclusao(item.id)}
+                    style={styles.botaoExcluir}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#ff6b6b" />
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -195,11 +243,24 @@ const styles = StyleSheet.create({
   linha: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
   infoLocal: { color: "#a8adc0", fontSize: 12 },
   destaque: { color: "#fff", fontWeight: "600" },
-  rodapeCard: {
+    rodapeCard: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: "#232a3d",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  botaoExcluir: {
+    padding: 8,
+    backgroundColor: "#3a1e1e",
+    borderRadius: 8,
+  },
+    botaoEditar: {
+    padding: 8,
+    backgroundColor: "#3a2a1a",
+    borderRadius: 8,
   },
   investimentoLabel: { color: "#a8adc0", fontSize: 11 },
   investimentoValor: { color: "#5fd08a", fontSize: 16, fontWeight: "bold" },
