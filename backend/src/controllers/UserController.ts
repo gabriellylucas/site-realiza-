@@ -197,7 +197,8 @@ function montarRespostaLogin(user: User, token: string) {
       nome: user.nome,
       email: user.email,
       cpf: user.cpf,
-      role: user.role
+      role: user.role,
+      foto_url: user.foto_url
     }
   };
 }

@@ -11,7 +11,7 @@ const storage = multer.diskStorage({
     cb(null, path.join(__dirname, "..", "..", "uploads"));
   },
   filename: (req, file, cb) => {
-    // Gera um nome único (evita colisão de nomes)
+  
     const nomeUnico = crypto.randomUUID();
     const extensao = path.extname(file.originalname).toLowerCase();
     cb(null, `${nomeUnico}${extensao}`);

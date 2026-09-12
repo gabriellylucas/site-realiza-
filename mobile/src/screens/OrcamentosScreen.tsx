@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import {
   View,
   Text,
+  Image,
   FlatList,
   StyleSheet,
   ActivityIndicator,
@@ -16,6 +17,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { listarOrcamentos, Orcamento } from "../services/orcamentoService";
+import { apiUrl } from "../services/api";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Orcamentos">;
 
@@ -34,6 +36,7 @@ export default function OrcamentosScreen() {
   const navigation = useNavigation<NavigationProp>();
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [nomeUsuario, setNomeUsuario] = useState("");
+  const [fotoUsuario, setFotoUsuario] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
 
@@ -44,9 +47,10 @@ export default function OrcamentosScreen() {
       setOrcamentos(resultado.orcamentos);
 
       const userJson = await AsyncStorage.getItem("user");
-      if (userJson) {
-        const user = JSON.parse(userJson);
+        if (userJson) {
+      const user = JSON.parse(userJson);
         setNomeUsuario(user.nome?.split(" ")[0] || "");
+        setFotoUsuario(user.foto_url || null);
       }
     } catch (error: any) {
       setErro("Erro ao carregar orçamentos");
@@ -77,8 +81,15 @@ export default function OrcamentosScreen() {
           <Text style={styles.titulo}>Meus orçamentos</Text>
         </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
-          <Ionicons name="person-circle-outline" size={32} color="#a8adc0" />
+          <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+          {fotoUsuario ? (
+            <Image
+              source={{ uri: `${apiUrl}${fotoUsuario}` }}
+              style={styles.avatarPequeno}
+            />
+          ) : (
+            <Ionicons name="person-circle-outline" size={32} color="#a8adc0" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -158,6 +169,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0d1220", padding: 16 },
   centro: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0d1220" },
   cabecalho: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  avatarPequeno: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: "#ff7a2a" },
   saudacao: { color: "#a8adc0", fontSize: 14, marginBottom: 2 },
   titulo: { color: "#ff7a2a", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
   erro: { color: "#ff6b6b", marginBottom: 12 },

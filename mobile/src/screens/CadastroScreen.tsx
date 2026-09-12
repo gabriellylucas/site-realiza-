@@ -79,7 +79,7 @@ export default function CadastroScreen() {
         <Text style={styles.label}>Nome completo</Text>
         <TextInput
           style={styles.input}
-          placeholder="João da Silva"
+          placeholder="Seu nome"
           placeholderTextColor="#8a8f99"
           value={nome}
           onChangeText={setNome}
