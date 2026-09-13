@@ -1,23 +1,15 @@
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import { LinearGradient } from "expo-linear-gradient";
 import { login } from "../services/authService";
+import { validarEmail } from "../utils/validacoes";
+import CampoTexto from "../components/CampoTexto";
+import BotaoGradiente from "../components/BotaoGradiente";
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, "Login">;
-
-function validarEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
 
 export default function LoginScreen() {
   const navigation = useNavigation<LoginScreenNavigationProp>();
@@ -69,22 +61,18 @@ export default function LoginScreen() {
         <Text style={styles.title}>Login</Text>
         <Text style={styles.subtitle}>Acesse sua conta</Text>
 
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
-          style={styles.input}
+        <CampoTexto
+          label="E-mail"
           placeholder="seu@email.com"
-          placeholderTextColor="#8a8f99"
           value={email}
           onChangeText={setEmail}
           autoCapitalize="none"
           keyboardType="email-address"
         />
 
-        <Text style={styles.label}>Senha</Text>
-        <TextInput
-          style={styles.input}
+        <CampoTexto
+          label="Senha"
           placeholder="••••••••"
-          placeholderTextColor="#8a8f99"
           value={senha}
           onChangeText={setSenha}
           secureTextEntry
@@ -92,23 +80,10 @@ export default function LoginScreen() {
 
         {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
-        <TouchableOpacity onPress={handleLogin} disabled={carregando} activeOpacity={0.85}>
-          <LinearGradient
-            colors={["#ff8a1e", "#ff4d1c"]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={styles.botao}
-          >
-            {carregando ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.botaoTexto}>Entrar</Text>
-            )}
-          </LinearGradient>
-        </TouchableOpacity>
+        <BotaoGradiente texto="Entrar" onPress={handleLogin} carregando={carregando} />
       </View>
 
-        <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
+      <TouchableOpacity onPress={() => navigation.navigate("Cadastro")}>
         <Text style={styles.link}>
           Não tem conta? <Text style={styles.linkDestaque}>Cadastre-se</Text>
         </Text>
@@ -155,35 +130,10 @@ const styles = StyleSheet.create({
     color: "#a8adc0",
     marginBottom: 20,
   },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    marginBottom: 6,
-    color: "#a8adc0",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#2a3040",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 16,
-    color: "#000",
-    backgroundColor: "#f1f1f3",
-  },
   erro: {
     color: "#ff6b6b",
     marginBottom: 12,
     textAlign: "center",
-  },
-    botao: {
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  botaoTexto: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
   },
   link: {
     color: "#a8adc0",
