@@ -1,5 +1,6 @@
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import Notificacoes from "../../components/Notificacoes/Notificacoes";
 import { useNavigate } from "react-router-dom";
 import "../../styles/MeusOrcamentos.css";
 
@@ -362,6 +363,8 @@ export default function MeusOrcamentos() {
           onVoltar={voltarParaInicio}
           onEditarPerfil={irParaEditarPerfil}
         />
+
+        <Notificacoes />
 
         {erro && <div className="erro">{erro}</div>}
 
