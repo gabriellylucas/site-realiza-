@@ -7,59 +7,25 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { criarOrcamento, Equipamento } from "../services/orcamentoService";
+import {
+  validarCPF,
+  validarCNPJ,
+  validarEmail,
+  aplicarMascaraCPF,
+  aplicarMascaraCNPJ,
+  aplicarMascaraTelefone,
+} from "../utils/validacoes";
 
 const TIPOS_EQUIPAMENTO = ["ABT", "ACF", "ABTS", "AT", "KIT"];
 
-function validarCPF(cpf: string): boolean {
-  cpf = cpf.replace(/\D/g, "");
-  if (cpf.length !== 11 || /^(\d)\1+$/.test(cpf)) return false;
-  let soma = 0;
-  for (let i = 0; i < 9; i++) soma += parseInt(cpf.charAt(i)) * (10 - i);
-  let resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  if (resto !== parseInt(cpf.charAt(9))) return false;
-  soma = 0;
-  for (let i = 0; i < 10; i++) soma += parseInt(cpf.charAt(i)) * (11 - i);
-  resto = (soma * 10) % 11;
-  if (resto === 10 || resto === 11) resto = 0;
-  return resto === parseInt(cpf.charAt(10));
-}
-
-function validarCNPJ(cnpj: string): boolean {
-  cnpj = cnpj.replace(/\D/g, "");
-  if (cnpj.length !== 14 || /^(\d)\1+$/.test(cnpj)) return false;
-  let tamanho = cnpj.length - 2;
-  let numeros = cnpj.substring(0, tamanho);
-  const digitos = cnpj.substring(tamanho);
-  let soma = 0;
-  let pos = tamanho - 7;
-  for (let i = tamanho; i >= 1; i--) {
-    soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
-    if (pos < 2) pos = 9;
-  }
-  let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-  if (resultado !== parseInt(digitos.charAt(0))) return false;
-  tamanho++;
-  numeros = cnpj.substring(0, tamanho);
-  soma = 0;
-  pos = tamanho - 7;
-  for (let i = tamanho; i >= 1; i--) {
-    soma += parseInt(numeros.charAt(tamanho - i)) * pos--;
-    if (pos < 2) pos = 9;
-  }
-  resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11);
-  return resultado === parseInt(digitos.charAt(1));
-}
-
-function validarEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
 
 export default function CriarOrcamentoScreen() {
   const navigation = useNavigation();
@@ -144,9 +110,14 @@ export default function CriarOrcamentoScreen() {
     }
   }
 
-  return (
+   return (
     <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+      >
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40 }}>
         <TouchableOpacity style={styles.voltar} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={18} color="#a8adc0" />
           <Text style={styles.voltarTexto}>Voltar</Text>
@@ -164,10 +135,10 @@ export default function CriarOrcamentoScreen() {
           <TextInput style={styles.input} placeholder="seu@email.com" placeholderTextColor="#8a8f99" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
 
           <Text style={styles.label}>CPF</Text>
-          <TextInput style={styles.input} placeholder="000.000.000-00" placeholderTextColor="#8a8f99" value={cpf} onChangeText={setCpf} keyboardType="numeric" />
+          <TextInput style={styles.input} placeholder="000.000.000-00" placeholderTextColor="#8a8f99" value={cpf} onChangeText={(v) => setCpf(aplicarMascaraCPF(v))} keyboardType="numeric" maxLength={14} />
 
           <Text style={styles.label}>Telefone</Text>
-          <TextInput style={styles.input} placeholder="(00) 00000-0000" placeholderTextColor="#8a8f99" value={telefone} onChangeText={setTelefone} keyboardType="phone-pad" />
+          <TextInput style={styles.input} placeholder="(00) 00000-0000" placeholderTextColor="#8a8f99" value={telefone} onChangeText={(v) => setTelefone(aplicarMascaraTelefone(v))} keyboardType="phone-pad" maxLength={15} />
         </View>
 
         <View style={styles.card}>
@@ -177,7 +148,7 @@ export default function CriarOrcamentoScreen() {
           <TextInput style={styles.input} placeholder="Nome da empresa" placeholderTextColor="#8a8f99" value={empresa} onChangeText={setEmpresa} />
 
           <Text style={styles.label}>CNPJ</Text>
-          <TextInput style={styles.input} placeholder="00.000.000/0000-00" placeholderTextColor="#8a8f99" value={cnpj} onChangeText={setCnpj} keyboardType="numeric" />
+          <TextInput style={styles.input} placeholder="00.000.000/0000-00" placeholderTextColor="#8a8f99" value={cnpj} onChangeText={(v) => setCnpj(aplicarMascaraCNPJ(v))} keyboardType="numeric" maxLength={18} />
 
           <Text style={styles.label}>Local</Text>
           <TextInput style={styles.input} placeholder="Cidade / Estado" placeholderTextColor="#8a8f99" value={local} onChangeText={setLocal} />
@@ -265,8 +236,9 @@ export default function CriarOrcamentoScreen() {
               <Text style={styles.botaoTexto}>Enviar</Text>
             )}
           </LinearGradient>
-        </TouchableOpacity>
-      </ScrollView>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
