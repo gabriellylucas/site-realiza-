@@ -1,5 +1,9 @@
 import { Request, Response } from "express";
+import { ResultSetHeader } from "mysql2";
 import { OrcamentoModel } from "../models/OrcamentoModel";
+import { gravarCache, invalidarCachePorPrefixo, lerCache } from "../services/cacheService";
+import { publicarEvento } from "../events/eventPublisher";
+import { CANAIS } from "../events/eventos";
 
 interface AuthRequest extends Request {
   userId: number;
@@ -26,6 +30,18 @@ interface Paginacao {
   page: number;
   limit: number;
   offset: number;
+}
+
+function prefixoCacheOrcamentos(userId: number): string {
+  return `orcamentos:user:${userId}:`;
+}
+
+function chaveListaOrcamentos(userId: number, page: number, limit: number): string {
+  return `${prefixoCacheOrcamentos(userId)}page:${page}:limit:${limit}`;
+}
+
+async function invalidarCacheOrcamentos(userId: number): Promise<void> {
+  await invalidarCachePorPrefixo(prefixoCacheOrcamentos(userId));
 }
 
 function validarOrcamento(
@@ -146,7 +162,15 @@ async function criarOrcamento(userId: number, dados: Orcamento): Promise<void> {
     invest: investimento
   });
 
-  await OrcamentoModel.create(orcamento);
+  const resultado = (await OrcamentoModel.create(orcamento)) as ResultSetHeader;
+  await invalidarCacheOrcamentos(userId);
+
+  await publicarEvento(CANAIS.ORCAMENTO_CRIADO, {
+    orcamentoId: resultado.insertId,
+    clienteId: userId,
+    clienteNome: dados.solicitante.nome,
+    clienteEmail: dados.solicitante.email
+  });
 }
 
 async function atualizarOrcamento(
@@ -160,12 +184,14 @@ async function atualizarOrcamento(
   const orcamento = await buscarOrcamento(id);
   validarDono(orcamento, userId);
   await OrcamentoModel.update(id, empresa, cnpj, local);
+  await invalidarCacheOrcamentos(userId);
 }
 
 async function deletarOrcamento(id: number, userId: number): Promise<void> {
   const orcamento = await buscarOrcamento(id);
   validarDono(orcamento, userId);
   await OrcamentoModel.delete(id);
+  await invalidarCacheOrcamentos(userId);
 }
 
 export class OrcamentoController {
@@ -185,13 +211,20 @@ export class OrcamentoController {
     try {
       const userId = (req as AuthRequest).userId;
       const { page, limit, offset } = obterPaginacao(req);
+      const chave = chaveListaOrcamentos(userId, page, limit);
+
+      const emCache = await lerCache<unknown>(chave);
+      if (emCache) {
+        return res.status(200).json(emCache);
+      }
+
       const { orcamentos, total } = await OrcamentoModel.findAllWithPagination(
         userId,
         limit,
         offset
       );
 
-      return res.status(200).json({
+      const resultado = {
         orcamentos,
         pagination: {
           page,
@@ -199,7 +232,10 @@ export class OrcamentoController {
           total,
           totalPages: Math.ceil(total / limit)
         }
-      });
+      };
+
+      await gravarCache(chave, resultado);
+      return res.status(200).json(resultado);
     } catch (error) {
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
       return tratarErro(erroTratado, res, "Erro ao buscar orçamentos");
@@ -248,6 +284,7 @@ export class OrcamentoController {
       const userId = (req as AuthRequest).userId;
       const id = Number(req.params.id);
       await OrcamentoModel.marcarStatusComoLido(id, userId);
+      await invalidarCacheOrcamentos(userId);
       return res.status(200).json({ message: "Marcado como lido" });
     } catch (error) {
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");

@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+﻿import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import type { RootStackParamList } from "../navigation/AppNavigator";
 import { listarOrcamentos, deletarOrcamento, Orcamento } from "../services/orcamentoService";
 import { apiUrl } from "../services/api";
+import { listarNotificacoes } from "../services/notificacaoService";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Orcamentos">;
 
@@ -40,6 +41,7 @@ export default function OrcamentosScreen() {
   const [fotoUsuario, setFotoUsuario] = useState<string | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
+  const [naoLidas, setNaoLidas] = useState(0);
 
   async function carregarOrcamentos() {
     try {
@@ -60,9 +62,19 @@ export default function OrcamentosScreen() {
     }
   }
 
+  async function carregarContagemNotificacoes() {
+    try {
+      const resposta = await listarNotificacoes(1, 1);
+      setNaoLidas(resposta.naoLidas || 0);
+    } catch {
+      // A falha nas notificações não deve impedir o carregamento dos orçamentos.
+    }
+  }
+
    useFocusEffect(
     useCallback(() => {
       carregarOrcamentos();
+      carregarContagemNotificacoes();
     }, [])
   );
 
@@ -85,6 +97,7 @@ export default function OrcamentosScreen() {
     try {
       await deletarOrcamento(id);
       carregarOrcamentos();
+      carregarContagemNotificacoes();
     } catch (error: any) {
       Alert.alert("Erro", error?.response?.data?.message || "Não foi possível excluir o orçamento");
     }
@@ -106,6 +119,17 @@ export default function OrcamentosScreen() {
           <Text style={styles.titulo}>Meus orçamentos</Text>
         </View>
 
+          <TouchableOpacity
+            onPress={() => navigation.navigate("Notificacoes")}
+            style={styles.botaoNotificacoes}
+          >
+            <Ionicons name="notifications-outline" size={25} color="#fff" />
+            {naoLidas > 0 && (
+              <View style={styles.contadorNotificacoes}>
+                <Text style={styles.contadorTexto}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
           {fotoUsuario ? (
             <Image
@@ -217,6 +241,9 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#0d1220", padding: 16 },
   centro: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0d1220" },
   cabecalho: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  botaoNotificacoes: { width: 38, height: 38, alignItems: "center", justifyContent: "center", marginRight: 8 },
+  contadorNotificacoes: { position: "absolute", top: 0, right: 0, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#ff4d1c", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
+  contadorTexto: { color: "#fff", fontSize: 10, fontWeight: "bold" },
   avatarPequeno: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: "#ff7a2a" },
   saudacao: { color: "#a8adc0", fontSize: 14, marginBottom: 2 },
   titulo: { color: "#ff7a2a", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
@@ -280,3 +307,5 @@ const styles = StyleSheet.create({
   },
   botaoTexto: { color: "#fff", fontWeight: "bold", fontSize: 15 },
 });
+
+

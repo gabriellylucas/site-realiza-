@@ -3,6 +3,9 @@ import { connection } from "../services/database";
 import { RowDataPacket } from "mysql2";
 import { OrcamentoModel } from "../models/OrcamentoModel";
 import { UserModel } from "../models/UserModel";
+import { invalidarCachePorPrefixo } from "../services/cacheService";
+import { publicarEvento } from "../events/eventPublisher";
+import { CANAIS, Canal } from "../events/eventos";
 
 interface CountRow extends RowDataPacket {
   total: number;
@@ -133,6 +136,15 @@ async function montarDashboard() {
 
 const STATUS_VALIDOS = ["EM_ANALISE", "APROVADO", "RECUSADO"];
 
+const CANAL_POR_STATUS: Record<string, Canal | undefined> = {
+  APROVADO: CANAIS.ORCAMENTO_APROVADO,
+  RECUSADO: CANAIS.ORCAMENTO_RECUSADO
+};
+
+async function invalidarCacheOrcamentosDoUsuario(userId: number): Promise<void> {
+  await invalidarCachePorPrefixo(`orcamentos:user:${userId}:`);
+}
+
 export class AdminController {
   static async dashboard(req: Request, res: Response) {
     try {
@@ -161,7 +173,24 @@ export class AdminController {
         return res.status(400).json({ message: "Status inválido" });
       }
 
+      const orcamento = await OrcamentoModel.findById(id);
+      if (!orcamento) {
+        return res.status(404).json({ message: "Orçamento não encontrado" });
+      }
+
       await OrcamentoModel.updateStatus(id, status);
+      await invalidarCacheOrcamentosDoUsuario(orcamento.user_id);
+
+      const canal = CANAL_POR_STATUS[status];
+      if (canal && orcamento.status !== status) {
+        await publicarEvento(canal, {
+          orcamentoId: id,
+          clienteId: orcamento.user_id,
+          clienteNome: orcamento.nome,
+          clienteEmail: orcamento.email
+        });
+      }
+
       return res.status(200).json({ message: "Status atualizado com sucesso" });
     } catch {
       return res.status(500).json({ message: "Erro ao atualizar status" });

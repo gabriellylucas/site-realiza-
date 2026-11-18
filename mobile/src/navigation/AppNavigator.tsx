@@ -1,4 +1,4 @@
-import { NavigationContainer } from "@react-navigation/native";
+﻿import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "../screens/LoginScreen";
 import OrcamentosScreen from "../screens/OrcamentosScreen";
@@ -6,6 +6,7 @@ import CadastroScreen from "../screens/CadastroScreen";
 import CriarOrcamentoScreen from "../screens/CriarOrcamentoScreen";
 import PerfilScreen from "../screens/PerfilScreen";
 import EditarOrcamentoScreen from "../screens/EditarOrcamentoScreen";
+import NotificacoesScreen from "../screens/NotificacoesScreen";
 
 export type RootStackParamList = {
   Login: undefined;
@@ -13,6 +14,7 @@ export type RootStackParamList = {
   Orcamentos: undefined;
   CriarOrcamento: undefined;
   Perfil: undefined;
+  Notificacoes: undefined;
   EditarOrcamento: {
     id: number;
     empresaAtual: string;
@@ -27,7 +29,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Login">
-          <Stack.Screen
+        <Stack.Screen
           name="Login"
           component={LoginScreen}
           options={{ headerShown: false }}
@@ -47,7 +49,7 @@ export default function AppNavigator() {
           component={CriarOrcamentoScreen}
           options={{ headerShown: false }}
         />
-                <Stack.Screen
+        <Stack.Screen
           name="Perfil"
           component={PerfilScreen}
           options={{ headerShown: false }}
@@ -55,6 +57,11 @@ export default function AppNavigator() {
         <Stack.Screen
           name="EditarOrcamento"
           component={EditarOrcamentoScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Notificacoes"
+          component={NotificacoesScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

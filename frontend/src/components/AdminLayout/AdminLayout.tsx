@@ -8,6 +8,7 @@ import {
   FiFileText
 } from "react-icons/fi";
 import { AuthContext } from "../../context/AuthContext";
+import Notificacoes from "../Notificacoes/Notificacoes";
 import "../../styles/AdminLayout.css";
 
 interface AdminLayoutProps {
@@ -71,7 +72,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </aside>
 
-      <main className="admin-conteudo">{children}</main>
+      <main className="admin-conteudo">
+        <div className="admin-notificacoes">
+          <Notificacoes />
+        </div>
+
+        {children}
+      </main>
     </div>
   );
 }
