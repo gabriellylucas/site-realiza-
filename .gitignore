@@ -10,3 +10,6 @@ node_modules/
 backend/uploads/*
 !backend/uploads/.gitkeep
 
+
+# Certificados locais do Nginx
+nginx/certs/
