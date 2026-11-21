@@ -42,7 +42,7 @@ export default function ListarContatos() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/contatos?page=${pagina}&limit=${limite}`,
+        `/api/contatos?page=${pagina}&limit=${limite}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -76,7 +76,7 @@ export default function ListarContatos() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/contatos/${id}`, {
+      const response = await fetch(`/api/contatos/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -1,0 +1,77 @@
+.usuarios-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #e5e7eb;
+}
+
+.usuarios-container h1 {
+  margin-bottom: 20px;
+  color: #e5e7eb;
+}
+
+.usuarios-erro {
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.usuarios-tabela-box {
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.usuarios-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.usuarios-tabela th,
+.usuarios-tabela td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: #e5e7eb;
+  white-space: nowrap;
+}
+
+.role-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.role-admin {
+  background: rgba(255, 106, 0, 0.15);
+  color: #ff6a00;
+}
+
+.role-usuario {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+}
+
+.btn-excluir {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-excluir:hover:not(:disabled) {
+  background: #f87171;
+  color: #0f172a;
+}
+
+.btn-excluir:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

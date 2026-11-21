@@ -1,0 +1,127 @@
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #e5e7eb;
+}
+
+.dashboard-container h1 {
+  margin-bottom: 4px;
+  color: #e5e7eb;
+}
+
+.dashboard-erro {
+  color: #f87171;
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dashboard-card {
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-icone {
+  font-size: 24px;
+}
+
+.card-valor {
+  font-size: 28px;
+  font-weight: 700;
+  color: #e5e7eb;
+}
+
+.card-label {
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.dashboard-destaque {
+  background: linear-gradient(90deg, #ff6a00, #ff3c00);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  font-weight: bold;
+  box-shadow: 0 10px 20px rgba(255, 94, 0, 0.3);
+}
+
+.dashboard-destaque strong {
+  font-size: 22px;
+  color: white;
+}
+
+.dashboard-graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.dashboard-grafico-box {
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.dashboard-grafico-box h2 {
+  font-size: 16px;
+  margin-bottom: 12px;
+  color: #e5e7eb;
+}
+
+.dashboard-tabela-box {
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.dashboard-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.dashboard-tabela th,
+.dashboard-tabela td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: #e5e7eb;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-em_analise {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.status-aprovado {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.status-recusado {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}

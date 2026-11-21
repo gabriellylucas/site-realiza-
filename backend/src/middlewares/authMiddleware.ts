@@ -3,10 +3,12 @@ import jwt from "jsonwebtoken";
 
 interface TokenPayload {
   id: number;
+  role: "admin" | "usuario";
 }
 
 interface AuthRequest extends Request {
   userId: number;
+  userRole: "admin" | "usuario";
 }
 
 export function authMiddleware(req: Request, res: Response, next: NextFunction) {
@@ -20,9 +22,8 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
 
   try {
     const decoded = jwt.verify(token, "segredo_super_secreto") as TokenPayload;
-
-    (req as AuthRequest).userId = decoded.id; // ✔ agora tipado
-
+    (req as AuthRequest).userId = decoded.id;
+    (req as AuthRequest).userRole = decoded.role;
     return next();
   } catch {
     return res.status(401).json({ message: "Token inválido" });

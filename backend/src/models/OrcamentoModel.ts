@@ -34,6 +34,7 @@ interface OrcamentoDB extends RowDataPacket {
   quantidade_total_kg: number;
   investimento_total: number;
   status: string;
+  status_lido: boolean;
   created_at: string;
 }
 
@@ -69,13 +70,13 @@ export class OrcamentoModel {
     const total = countRows[0].total;
 
     const sql = `
-      SELECT id, empresa, cnpj, local, equipamentos, quantidade_total_kg, investimento_total, status, created_at 
+      SELECT id, empresa, cnpj, local, equipamentos, quantidade_total_kg, investimento_total, status, status_lido, created_at 
       FROM orcamentos 
       WHERE user_id = ?
       LIMIT ? OFFSET ?
     `;
 
-    const [rows] = await connection.execute<OrcamentoDB[]>(sql, [userId, limit, offset]);
+    const [rows] = await connection.query<OrcamentoDB[]>(sql, [userId, limit, offset]);
 
     return {
       orcamentos: rows,
@@ -87,6 +88,16 @@ export class OrcamentoModel {
     const sql = `SELECT * FROM orcamentos WHERE id = ?`;
     const [rows] = await connection.execute<OrcamentoDB[]>(sql, [id]);
     return rows[0];
+  }
+
+  static async findAll() {
+    const sql = `
+      SELECT id, nome, empresa, cnpj, local, equipamentos, quantidade_total_kg, investimento_total, status, created_at
+      FROM orcamentos
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await connection.execute<OrcamentoDB[]>(sql);
+    return rows;
   }
 
   static async existePorUserId(userId: number) {
@@ -104,6 +115,26 @@ export class OrcamentoModel {
     `;
 
     await connection.execute(query, [empresa, cnpj, local, id]);
+  }
+
+  static async updateStatus(id: number, status: string) {
+    const query = `
+      UPDATE orcamentos
+      SET status = ?, status_lido = 0
+      WHERE id = ?
+    `;
+
+    await connection.execute(query, [status, id]);
+  }
+
+  static async marcarStatusComoLido(id: number, userId: number) {
+    const query = `
+      UPDATE orcamentos
+      SET status_lido = 1
+      WHERE id = ? AND user_id = ?
+    `;
+
+    await connection.execute(query, [id, userId]);
   }
 
   static async delete(id: number) {

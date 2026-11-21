@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { UserModel } from "../models/UserModel";
 import { OrcamentoModel } from "../models/OrcamentoModel";
+import fs from "fs";
+import path from "path";
 
 interface AuthRequest extends Request {
   userId: number;
@@ -14,6 +16,8 @@ interface User {
   email: string;
   cpf: string;
   senha: string;
+  role: "admin" | "usuario";
+  foto_url?: string | null;
 }
 
 interface RegisterBody {
@@ -181,7 +185,7 @@ async function gerarSenhaHash(senha: string): Promise<string> {
 }
 
 function gerarToken(user: User): string {
-  return jwt.sign({ id: user.id }, "segredo_super_secreto", { expiresIn: "1h" });
+  return jwt.sign({ id: user.id, role: user.role }, "segredo_super_secreto", { expiresIn: "1h" });
 }
 
 function montarRespostaLogin(user: User, token: string) {
@@ -192,7 +196,9 @@ function montarRespostaLogin(user: User, token: string) {
       id: user.id,
       nome: user.nome,
       email: user.email,
-      cpf: user.cpf
+      cpf: user.cpf,
+      role: user.role,
+      foto_url: user.foto_url
     }
   };
 }
@@ -319,13 +325,13 @@ export class UserController {
     }
   }
 
-  static async list(req: Request, res: Response) {
+     static async list(req: Request, res: Response) {
     try {
       const resultado = await listarUsuarios(req);
       return res.status(200).json(resultado);
     } catch (error) {
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao buscar usuários");
+      return tratarErro(erroTratado, res, "Erro ao buscar usuÃ¡rios");
     }
   }
 
@@ -343,7 +349,6 @@ export class UserController {
       return tratarErro(erroTratado, res, "Erro ao atualizar usuário");
     }
   }
-
   static async delete(req: Request, res: Response) {
     try {
       const id = obterId(req.params.id as string);
@@ -351,10 +356,38 @@ export class UserController {
 
       await deletarUsuario(id, userId);
 
-      return res.status(200).json({ message: "Usuário deletado com sucesso" });
+      return res.status(200).json({ message: "UsuÃ¡rio deletado com sucesso" });
     } catch (error) {
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao deletar usuário");
+      return tratarErro(erroTratado, res, "Erro ao deletar usuÃ¡rio");
+    }
+  }
+
+  static async uploadFoto(req: Request, res: Response) {
+    try {
+      const userId = (req as AuthRequest).userId;
+      const arquivo = req.file;
+
+      if (!arquivo) {
+        return res.status(400).json({ message: "Nenhuma imagem enviada" });
+      }
+
+      const usuario = await buscarUsuarioOuLancarErro(userId);
+
+      if (usuario.foto_url) {
+        const caminhoAntigo = path.join(__dirname, "..", "..", "uploads", path.basename(usuario.foto_url));
+        if (fs.existsSync(caminhoAntigo)) {
+          fs.unlinkSync(caminhoAntigo);
+        }
+      }
+
+      const fotoUrl = `/uploads/${arquivo.filename}`;
+      await UserModel.atualizarFoto(userId, fotoUrl);
+
+      return res.status(200).json({ message: "Foto atualizada com sucesso", fotoUrl });
+    } catch (error) {
+      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
+      return tratarErro(erroTratado, res, "Erro ao atualizar foto");
     }
   }
 }

@@ -1,0 +1,110 @@
+.orcamentos-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 24px;
+  color: #e5e7eb;
+}
+
+.orcamentos-container h1 {
+  margin-bottom: 20px;
+  color: #e5e7eb;
+}
+
+.orcamentos-erro {
+  color: #f87171;
+  margin-bottom: 16px;
+}
+
+.orcamentos-tabela-box {
+  background: #0f172a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px;
+  padding: 20px;
+  overflow-x: auto;
+}
+
+.orcamentos-tabela {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.orcamentos-tabela th,
+.orcamentos-tabela td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  color: #e5e7eb;
+  white-space: nowrap;
+}
+
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-em_analise {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.status-aprovado {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.status-recusado {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.orcamentos-acoes {
+  display: flex;
+  gap: 6px;
+}
+
+.orcamentos-acoes button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.orcamentos-acoes button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-aprovar {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.btn-aprovar:hover:not(:disabled) {
+  background: #4ade80;
+  color: #0f172a;
+}
+
+.btn-recusar {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+}
+
+.btn-recusar:hover:not(:disabled) {
+  background: #f87171;
+  color: #0f172a;
+}
+
+.btn-pendente {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.btn-pendente:hover:not(:disabled) {
+  background: #fbbf24;
+  color: #0f172a;
+}

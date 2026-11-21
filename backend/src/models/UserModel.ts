@@ -11,6 +11,8 @@ interface UserDB extends RowDataPacket {
   email: string;
   senha: string;
   cpf: string;
+  role: "admin" | "usuario";
+  foto_url?: string | null;
   created_at?: string;
 }
 
@@ -41,18 +43,26 @@ export class UserModel {
     const countSql = `SELECT COUNT(*) as total FROM users`;
     const [countRows] = await connection.execute<CountRow[]>(countSql);
     const total = countRows[0].total;
-
     const sql = `
-      SELECT id, nome, email, cpf, created_at
+      SELECT id, nome, email, cpf, role, created_at
       FROM users
-      LIMIT ? OFFSET ?
+      LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
-    const [rows] = await connection.execute<UserDB[]>(sql, [limit, offset]);
-
+    const [rows] = await connection.query<UserDB[]>(sql);
     return {
       usuarios: rows,
       total
     };
+  }
+
+  static async findAll() {
+    const sql = `
+      SELECT id, nome, email, cpf, role, created_at
+      FROM users
+      ORDER BY created_at DESC
+    `;
+    const [rows] = await connection.query<UserDB[]>(sql);
+    return rows;
   }
 
   static async updateWithoutEmail(id: number, nome: string, senha: string, cpf: string) {
@@ -65,8 +75,13 @@ export class UserModel {
     await connection.execute(query, [nome, senha, cpf, id]);
   }
 
-  static async delete(id: number) {
+    static async delete(id: number) {
     const query = `DELETE FROM users WHERE id = ?`;
     await connection.execute(query, [id]);
+  }
+
+  static async atualizarFoto(id: number, fotoUrl: string) {
+    const query = `UPDATE users SET foto_url = ? WHERE id = ?`;
+    await connection.execute(query, [fotoUrl, id]);
   }
 }

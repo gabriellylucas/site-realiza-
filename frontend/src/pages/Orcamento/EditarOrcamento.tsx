@@ -46,7 +46,7 @@ export default function EditarOrcamento() {
       setLoading(true);
       setErro("");
 
-      const response = await fetch(`http://localhost:3000/orcamentos/${id}`, {
+      const response = await fetch(`/api/orcamentos/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -84,7 +84,7 @@ export default function EditarOrcamento() {
     }
 
     try {
-      const response = await fetch(`http://localhost:3000/orcamentos/${id}`, {
+      const response = await fetch(`/api/orcamentos/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

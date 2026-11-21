@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { ProdutoModel } from "../models/ProdutoModel";
+import { gravarCache, invalidarCachePorPrefixo, lerCache } from "../services/cacheService";
 
 interface ProdutoBody {
   nome: string;
@@ -12,6 +13,8 @@ interface Paginacao {
   limit: number;
   offset: number;
 }
+
+const PREFIXO_CACHE_PRODUTOS = "produtos:list:";
 
 function validarProduto(nome: string, descricao: string, preco: number): void {
   if (!nome || !descricao || !preco) {
@@ -51,26 +54,43 @@ async function buscarProdutoOuLancarErro(id: number) {
   return produto;
 }
 
+async function invalidarCacheProdutos(): Promise<void> {
+  await invalidarCachePorPrefixo(PREFIXO_CACHE_PRODUTOS);
+}
+
 async function criarProduto(dados: ProdutoBody): Promise<void> {
   validarProduto(dados.nome, dados.descricao, dados.preco);
   await ProdutoModel.create(dados.nome, dados.descricao, dados.preco);
+  await invalidarCacheProdutos();
 }
 
 async function atualizarProduto(id: number, dados: ProdutoBody): Promise<void> {
   validarProduto(dados.nome, dados.descricao, dados.preco);
   await buscarProdutoOuLancarErro(id);
   await ProdutoModel.update(id, dados.nome, dados.descricao, dados.preco);
+  await invalidarCacheProdutos();
 }
 
 async function deletarProduto(id: number): Promise<void> {
   await buscarProdutoOuLancarErro(id);
   await ProdutoModel.delete(id);
+  await invalidarCacheProdutos();
 }
 
 async function listarProdutos(req: Request) {
   const { page, limit, offset } = obterPaginacao(req);
+  const chave = `${PREFIXO_CACHE_PRODUTOS}page:${page}:limit:${limit}`;
+
+  const emCache = await lerCache<unknown>(chave);
+  if (emCache) {
+    return emCache;
+  }
+
   const { produtos, total } = await ProdutoModel.findAllWithPagination(limit, offset);
-  return { produtos, pagination: montarPaginacao(page, limit, total) };
+  const resultado = { produtos, pagination: montarPaginacao(page, limit, total) };
+
+  await gravarCache(chave, resultado);
+  return resultado;
 }
 
 function tratarErro(error: Error, res: Response, mensagemPadrao: string) {

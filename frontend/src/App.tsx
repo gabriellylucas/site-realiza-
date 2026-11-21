@@ -22,6 +22,12 @@ import EditarUsuario from "./pages/Perfil/EditarUsuario";
 import { AuthProvider } from "./context/AuthContext";
 import ListarContatos from "./pages/Institucional/ListarContatos";
 import EditarContato from "./pages/Institucional/EditarContato";
+import Dashboard from "./pages/Admin/Dashboard";
+import AdminOrcamentos from "./pages/Admin/AdminOrcamentos";
+import AdminUsuarios from "./pages/Admin/AdminUsuarios";
+import AdminRelatorios from "./pages/Admin/AdminRelatorios";
+import RotaAdmin from "./components/RotaAdmin/RotaAdmin";
+import AdminLayout from "./components/AdminLayout/AdminLayout";
 import "./styles/App.css";
 
 function Home() {
@@ -85,7 +91,8 @@ function AppWrapper() {
     location.pathname === "/orcamento" ||
     location.pathname === "/meus-orcamentos" ||
     location.pathname === "/editar-usuario" ||
-    location.pathname.startsWith("/editar-orcamento");
+    location.pathname.startsWith("/editar-orcamento") ||
+    location.pathname.startsWith("/admin");
 
   const mostrarBotao =
     location.pathname !== "/login" &&
@@ -101,7 +108,8 @@ function AppWrapper() {
     location.pathname !== "/incendiob" &&
     location.pathname !== "/incendiod" &&
     location.pathname !== "/editar-usuario" &&
-    !location.pathname.startsWith("/editar-orcamento");
+    !location.pathname.startsWith("/editar-orcamento") &&
+    !location.pathname.startsWith("/admin");
 
   return (
     <>
@@ -127,6 +135,46 @@ function AppWrapper() {
         <Route path="/editar-usuario" element={<EditarUsuario />} />
         <Route path="/contatos" element={<ListarContatos />} />
         <Route path="/editar-contato/:id" element={<EditarContato />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <RotaAdmin>
+              <AdminLayout>
+                <Dashboard />
+              </AdminLayout>
+            </RotaAdmin>
+          }
+        />
+        <Route
+          path="/admin/orcamentos"
+          element={
+            <RotaAdmin>
+              <AdminLayout>
+                <AdminOrcamentos />
+              </AdminLayout>
+            </RotaAdmin>
+          }
+        />
+        <Route
+          path="/admin/usuarios"
+          element={
+            <RotaAdmin>
+              <AdminLayout>
+                <AdminUsuarios />
+              </AdminLayout>
+            </RotaAdmin>
+          }
+        />
+        <Route
+          path="/admin/relatorios"
+          element={
+            <RotaAdmin>
+              <AdminLayout>
+                <AdminRelatorios />
+              </AdminLayout>
+            </RotaAdmin>
+          }
+        />
       </Routes>
 
       {!rotasSemNavbarFooter && <Footer />}

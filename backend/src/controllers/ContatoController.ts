@@ -89,6 +89,7 @@ export class ContatoController {
       const resultado = await listarContatos(req);
       return res.status(200).json(resultado);
     } catch (error) {
+      console.error("ERRO CONTATOS:", error);
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
       return tratarErro(erroTratado, res, "Erro ao buscar mensagens");
     }

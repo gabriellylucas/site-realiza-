@@ -1,2 +1,15 @@
 .env
 node_modules/
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+
+# Certificados locais do Nginx
+nginx/certs/

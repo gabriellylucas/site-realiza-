@@ -1,10 +1,13 @@
+import { useContext } from "react";
 import logo from "../assets/logo.png";
 import { useNavigate, Link } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
+import { AuthContext } from "../context/AuthContext";
 
 function Navbar() {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+  const { user } = useContext(AuthContext);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -41,6 +44,12 @@ function Navbar() {
           </li>
         )}
 
+        {token && user?.role === "admin" && (
+          <li>
+            <Link to="/admin/dashboard">Dashboard</Link>
+          </li>
+        )}
+
         {!token && (
           <li className="login-btn-item">
             <button
@@ -54,14 +63,7 @@ function Navbar() {
 
         {token && (
           <li className="logout-icon-item">
-            <a
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handleLogout();
-              }}
-              title="Sair"
-            >
+            <a href="#" onClick={(e) => { e.preventDefault(); handleLogout(); }} title="Sair">
               <FiLogOut size={24} />
             </a>
           </li>
