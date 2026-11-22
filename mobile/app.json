@@ -1,4 +1,3 @@
-
 {
   "expo": {
     "name": "mobile",
@@ -21,17 +20,16 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-font",
       "expo-status-bar",
       [
         "expo-splash-screen",
         {
           "image": "./assets/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "imageWidth": 200
+          "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
