@@ -259,35 +259,37 @@ export default function OrcamentosScreen() {
                 </View>
 
                 <View style={{ flexDirection: "row", gap: 8 }}>
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate("EditarOrcamento", {
-                        id: item.id,
-                        empresaAtual: item.empresa,
-                        cnpjAtual: item.cnpj,
-                        localAtual: item.local
-                      })
-                    }
-                    style={styles.botaoEditar}
-                  >
-                    <Ionicons
-                      name="create-outline"
-                      size={18}
-                      color="#ff7a2a"
-                    />
-                  </TouchableOpacity>
+  <TouchableOpacity
+    onPress={() =>
+      navigation.navigate("EditarOrcamento", {
+        id: item.id,
+        empresaAtual: item.empresa,
+        cnpjAtual: item.cnpj,
+        localAtual: item.local
+      })
+    }
+    style={styles.botaoEditar}
+  >
+    <Ionicons
+      name="create-outline"
+      size={18}
+      color="#ff7a2a"
+    />
+  </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={() => confirmarExclusao(item.id)}
-                    style={styles.botaoExcluir}
-                  >
-                    <Ionicons
-                      name="trash-outline"
-                      size={18}
-                      color="#ff6b6b"
-                    />
-                  </TouchableOpacity>
-                </View>
+  {item.status?.toUpperCase() !== "APROVADO" && (
+    <TouchableOpacity
+      onPress={() => confirmarExclusao(item.id)}
+      style={styles.botaoExcluir}
+    >
+      <Ionicons
+        name="trash-outline"
+        size={18}
+        color="#ff6b6b"
+      />
+    </TouchableOpacity>
+  )}
+</View>
               </View>
             </View>
           );

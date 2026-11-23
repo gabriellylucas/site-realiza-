@@ -27,7 +27,8 @@ function renderLogin(setUserMock = vi.fn()) {
       <AuthContext.Provider
         value={{
           user: null,
-          setUser: setUserMock
+          setUser: setUserMock,
+          carregandoUsuario: false
         }}
       >
         <Login />
