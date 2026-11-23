@@ -1,18 +1,8 @@
 import { Request, Response } from "express";
 import { ProdutoModel } from "../models/ProdutoModel";
 import { gravarCache, invalidarCachePorPrefixo, lerCache } from "../services/cacheService";
-
-interface ProdutoBody {
-  nome: string;
-  descricao: string;
-  preco: number;
-}
-
-interface Paginacao {
-  page: number;
-  limit: number;
-  offset: number;
-}
+import type { PaginacaoDTO } from "../dtos/PaginacaoDTO";
+import type { ProdutoDTO } from "../dtos/ProdutoDTO";
 
 const PREFIXO_CACHE_PRODUTOS = "produtos:list:";
 
@@ -30,7 +20,7 @@ function obterId(id: string): number {
   return Number(id);
 }
 
-function obterPaginacao(req: Request): Paginacao {
+function obterPaginacao(req: Request): PaginacaoDTO {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
   return { page, limit, offset: (page - 1) * limit };
@@ -40,7 +30,7 @@ function montarPaginacao(page: number, limit: number, total: number) {
   return { page, limit, total, totalPages: Math.ceil(total / limit) };
 }
 
-function extrairDadosProduto(body: ProdutoBody): ProdutoBody {
+function extrairDadosProduto(body: ProdutoDTO): ProdutoDTO {
   return {
     nome: body.nome,
     descricao: body.descricao,
@@ -58,13 +48,13 @@ async function invalidarCacheProdutos(): Promise<void> {
   await invalidarCachePorPrefixo(PREFIXO_CACHE_PRODUTOS);
 }
 
-async function criarProduto(dados: ProdutoBody): Promise<void> {
+async function criarProduto(dados: ProdutoDTO): Promise<void> {
   validarProduto(dados.nome, dados.descricao, dados.preco);
   await ProdutoModel.create(dados.nome, dados.descricao, dados.preco);
   await invalidarCacheProdutos();
 }
 
-async function atualizarProduto(id: number, dados: ProdutoBody): Promise<void> {
+async function atualizarProduto(id: number, dados: ProdutoDTO): Promise<void> {
   validarProduto(dados.nome, dados.descricao, dados.preco);
   await buscarProdutoOuLancarErro(id);
   await ProdutoModel.update(id, dados.nome, dados.descricao, dados.preco);
