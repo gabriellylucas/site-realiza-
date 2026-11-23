@@ -6,6 +6,8 @@ import { UserModel } from "../models/UserModel";
 import { invalidarCachePorPrefixo } from "../services/cacheService";
 import { publicarEvento } from "../events/eventPublisher";
 import { CANAIS, Canal } from "../events/eventos";
+import { STATUS_VALIDOS } from "../dtos/StatusOrcamentoDTO";
+import type { AtualizarStatusDTO } from "../dtos/StatusOrcamentoDTO";
 
 interface CountRow extends RowDataPacket {
   total: number;
@@ -134,8 +136,6 @@ async function montarDashboard() {
   };
 }
 
-const STATUS_VALIDOS = ["EM_ANALISE", "APROVADO", "RECUSADO"];
-
 const CANAL_POR_STATUS: Record<string, Canal | undefined> = {
   APROVADO: CANAIS.ORCAMENTO_APROVADO,
   RECUSADO: CANAIS.ORCAMENTO_RECUSADO
@@ -167,7 +167,7 @@ export class AdminController {
   static async atualizarStatusOrcamento(req: Request, res: Response) {
     try {
       const id = Number(req.params.id);
-      const { status } = req.body as { status: string };
+      const { status } = req.body as AtualizarStatusDTO;
 
       if (!STATUS_VALIDOS.includes(status)) {
         return res.status(400).json({ message: "Status inválido" });
