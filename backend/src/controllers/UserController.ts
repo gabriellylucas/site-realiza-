@@ -62,6 +62,7 @@ function validarCPF(cpf: string): boolean {
   if (resto !== parseInt(cpf.substring(9, 10))) return false;
 
   soma = 0;
+
   for (let i = 1; i <= 10; i++) {
     soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
   }
@@ -87,6 +88,7 @@ function obterId(id: string): number {
 function obterPaginacao(req: Request): Paginacao {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
+
   return { page, limit, offset: (page - 1) * limit };
 }
 
@@ -154,7 +156,10 @@ function validarUsuarioAutenticado(id: number, userId: number): void {
   }
 }
 
-function validarEmailImutavel(email: string | undefined, emailAtual: string): void {
+function validarEmailImutavel(
+  email: string | undefined,
+  emailAtual: string
+): void {
   if (email && email !== emailAtual) {
     throw new Error("Não é permitido alterar o email");
   }
@@ -170,7 +175,9 @@ async function buscarUsuarioOuLancarErro(id: number): Promise<User> {
   return usuario[0];
 }
 
-async function buscarUsuarioPorEmailOuLancarErro(email: string): Promise<User> {
+async function buscarUsuarioPorEmailOuLancarErro(
+  email: string
+): Promise<User> {
   const usuario = await UserModel.findByEmail(email) as User[];
 
   if (!usuario || usuario.length === 0) {
@@ -185,7 +192,11 @@ async function gerarSenhaHash(senha: string): Promise<string> {
 }
 
 function gerarToken(user: User): string {
-  return jwt.sign({ id: user.id, role: user.role }, "segredo_super_secreto", { expiresIn: "1h" });
+  return jwt.sign(
+    { id: user.id, role: user.role },
+    "segredo_super_secreto",
+    { expiresIn: "1h" }
+  );
 }
 
 function montarRespostaLogin(user: User, token: string) {
@@ -209,7 +220,13 @@ async function criarUsuario(dados: RegisterBody): Promise<void> {
   validarSenhaCadastro(dados.senha);
 
   const senhaHash = await gerarSenhaHash(dados.senha);
-  await UserModel.create(dados.nome, dados.email, senhaHash, dados.cpf);
+
+  await UserModel.create(
+    dados.nome,
+    dados.email,
+    senhaHash,
+    dados.cpf
+  );
 }
 
 async function autenticarUsuario(dados: LoginBody) {
@@ -225,36 +242,65 @@ async function autenticarUsuario(dados: LoginBody) {
 
 async function listarUsuarios(req: Request) {
   const { page, limit, offset } = obterPaginacao(req);
-  const { usuarios, total } = await UserModel.findAllWithPagination(limit, offset);
-  return { usuarios, pagination: montarPaginacao(page, limit, total) };
+
+  const { usuarios, total } =
+    await UserModel.findAllWithPagination(limit, offset);
+
+  return {
+    usuarios,
+    pagination: montarPaginacao(page, limit, total)
+  };
 }
 
-async function atualizarUsuario(id: number, userId: number, dados: UpdateUserBody): Promise<void> {
+async function atualizarUsuario(
+  id: number,
+  userId: number,
+  dados: UpdateUserBody
+): Promise<void> {
   validarUsuarioAutenticado(id, userId);
+
   const usuarioAtual = await buscarUsuarioOuLancarErro(id);
 
   validarCamposAtualizacao(dados);
   validarEmailImutavel(dados.email, usuarioAtual.email);
+
   if (!validarCPF(dados.cpf)) throw new Error("CPF inválido");
+
   validarSenhaCadastro(dados.senha);
 
   const senhaHash = await gerarSenhaHash(dados.senha);
-  await UserModel.updateWithoutEmail(id, dados.nome, senhaHash, dados.cpf);
+
+  await UserModel.updateWithoutEmail(
+    id,
+    dados.nome,
+    senhaHash,
+    dados.cpf
+  );
 }
 
-async function deletarUsuario(id: number, userId: number): Promise<void> {
+async function deletarUsuario(
+  id: number,
+  userId: number
+): Promise<void> {
   validarUsuarioAutenticado(id, userId);
   await buscarUsuarioOuLancarErro(id);
 
   const temOrcamento = await OrcamentoModel.existePorUserId(userId);
+
   if (temOrcamento) {
-    throw new Error("Você possui orçamento(s) cadastrado(s). Exclua-os antes de excluir sua conta.");
+    throw new Error(
+      "Você possui orçamento(s) cadastrado(s). Exclua-os antes de excluir sua conta."
+    );
   }
 
   await UserModel.delete(id);
 }
 
-function tratarErro(error: Error, res: Response, mensagemPadrao: string) {
+function tratarErro(
+  error: Error,
+  res: Response,
+  mensagemPadrao: string
+) {
   if (error.message === "Todos os campos são obrigatórios") {
     return res.status(400).json({ message: error.message });
   }
@@ -297,7 +343,10 @@ function tratarErro(error: Error, res: Response, mensagemPadrao: string) {
     });
   }
 
-  if (error.message === "Você possui orçamento(s) cadastrado(s). Exclua-os antes de excluir sua conta.") {
+  if (
+    error.message ===
+    "Você possui orçamento(s) cadastrado(s). Exclua-os antes de excluir sua conta."
+  ) {
     return res.status(400).json({ message: error.message });
   }
 
@@ -308,30 +357,55 @@ export class UserController {
   static async register(req: Request, res: Response) {
     try {
       await criarUsuario(extrairRegistro(req.body as RegisterBody));
-      return res.status(201).json({ message: "Usuário cadastrado com sucesso" });
+
+      return res.status(201).json({
+        message: "Usuário cadastrado com sucesso"
+      });
     } catch (error) {
-      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao cadastrar usuário");
+      const erroTratado =
+        error instanceof Error ? error : new Error("Erro inesperado");
+
+      return tratarErro(
+        erroTratado,
+        res,
+        "Erro ao cadastrar usuário"
+      );
     }
   }
 
   static async login(req: Request, res: Response) {
     try {
-      const resultado = await autenticarUsuario(extrairLogin(req.body as LoginBody));
+      const resultado = await autenticarUsuario(
+        extrairLogin(req.body as LoginBody)
+      );
+
       return res.status(200).json(resultado);
     } catch (error) {
-      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao fazer login");
+      const erroTratado =
+        error instanceof Error ? error : new Error("Erro inesperado");
+
+      return tratarErro(
+        erroTratado,
+        res,
+        "Erro ao fazer login"
+      );
     }
   }
 
-     static async list(req: Request, res: Response) {
+  static async list(req: Request, res: Response) {
     try {
       const resultado = await listarUsuarios(req);
+
       return res.status(200).json(resultado);
     } catch (error) {
-      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao buscar usuÃ¡rios");
+      const erroTratado =
+        error instanceof Error ? error : new Error("Erro inesperado");
+
+      return tratarErro(
+        erroTratado,
+        res,
+        "Erro ao buscar usuários"
+      );
     }
   }
 
@@ -343,12 +417,21 @@ export class UserController {
 
       await atualizarUsuario(id, userId, dados);
 
-      return res.status(200).json({ message: "Usuário atualizado com sucesso" });
+      return res.status(200).json({
+        message: "Usuário atualizado com sucesso"
+      });
     } catch (error) {
-      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao atualizar usuário");
+      const erroTratado =
+        error instanceof Error ? error : new Error("Erro inesperado");
+
+      return tratarErro(
+        erroTratado,
+        res,
+        "Erro ao atualizar usuário"
+      );
     }
   }
+
   static async delete(req: Request, res: Response) {
     try {
       const id = obterId(req.params.id as string);
@@ -356,10 +439,18 @@ export class UserController {
 
       await deletarUsuario(id, userId);
 
-      return res.status(200).json({ message: "UsuÃ¡rio deletado com sucesso" });
+      return res.status(200).json({
+        message: "Usuário deletado com sucesso"
+      });
     } catch (error) {
-      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao deletar usuÃ¡rio");
+      const erroTratado =
+        error instanceof Error ? error : new Error("Erro inesperado");
+
+      return tratarErro(
+        erroTratado,
+        res,
+        "Erro ao deletar usuário"
+      );
     }
   }
 
@@ -369,25 +460,44 @@ export class UserController {
       const arquivo = req.file;
 
       if (!arquivo) {
-        return res.status(400).json({ message: "Nenhuma imagem enviada" });
+        return res.status(400).json({
+          message: "Nenhuma imagem enviada"
+        });
       }
 
       const usuario = await buscarUsuarioOuLancarErro(userId);
 
       if (usuario.foto_url) {
-        const caminhoAntigo = path.join(__dirname, "..", "..", "uploads", path.basename(usuario.foto_url));
+        const caminhoAntigo = path.join(
+          __dirname,
+          "..",
+          "..",
+          "uploads",
+          path.basename(usuario.foto_url)
+        );
+
         if (fs.existsSync(caminhoAntigo)) {
           fs.unlinkSync(caminhoAntigo);
         }
       }
 
       const fotoUrl = `/uploads/${arquivo.filename}`;
+
       await UserModel.atualizarFoto(userId, fotoUrl);
 
-      return res.status(200).json({ message: "Foto atualizada com sucesso", fotoUrl });
+      return res.status(200).json({
+        message: "Foto atualizada com sucesso",
+        fotoUrl
+      });
     } catch (error) {
-      const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
-      return tratarErro(erroTratado, res, "Erro ao atualizar foto");
+      const erroTratado =
+        error instanceof Error ? error : new Error("Erro inesperado");
+
+      return tratarErro(
+        erroTratado,
+        res,
+        "Erro ao atualizar foto"
+      );
     }
   }
 }

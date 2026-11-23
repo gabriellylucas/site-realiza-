@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   TouchableOpacity,
-  Alert,
+  Alert
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
@@ -17,25 +17,36 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import type { RootStackParamList } from "../navigation/AppNavigator";
-import { listarOrcamentos, deletarOrcamento, Orcamento } from "../services/orcamentoService";
+import {
+  listarOrcamentos,
+  deletarOrcamento,
+  Orcamento
+} from "../services/orcamentoService";
 import { apiUrl } from "../services/api";
 import { listarNotificacoes } from "../services/notificacaoService";
 
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, "Orcamentos">;
+type NavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Orcamentos"
+>;
 
 function statusInfo(status: string) {
   const s = status?.toUpperCase();
+
   if (s === "APROVADO") {
     return { label: "Aprovado", bg: "#1e3a2a", cor: "#5fd08a" };
   }
+
   if (s === "REJEITADO" || s === "RECUSADO") {
     return { label: "Recusado", bg: "#3a1e1e", cor: "#ff6b6b" };
   }
+
   return { label: "Em análise", bg: "#3a301a", cor: "#e8b455" };
 }
 
 export default function OrcamentosScreen() {
   const navigation = useNavigation<NavigationProp>();
+
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
   const [nomeUsuario, setNomeUsuario] = useState("");
   const [fotoUsuario, setFotoUsuario] = useState<string | null>(null);
@@ -46,16 +57,18 @@ export default function OrcamentosScreen() {
   async function carregarOrcamentos() {
     try {
       setErro("");
+
       const resultado = await listarOrcamentos();
       setOrcamentos(resultado.orcamentos);
 
       const userJson = await AsyncStorage.getItem("user");
-        if (userJson) {
-      const user = JSON.parse(userJson);
+
+      if (userJson) {
+        const user = JSON.parse(userJson);
         setNomeUsuario(user.nome?.split(" ")[0] || "");
         setFotoUsuario(user.foto_url || null);
       }
-    } catch (error: any) {
+    } catch {
       setErro("Erro ao carregar orçamentos");
     } finally {
       setCarregando(false);
@@ -67,11 +80,10 @@ export default function OrcamentosScreen() {
       const resposta = await listarNotificacoes(1, 1);
       setNaoLidas(resposta.naoLidas || 0);
     } catch {
-      // A falha nas notificações não deve impedir o carregamento dos orçamentos.
     }
   }
 
-   useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       carregarOrcamentos();
       carregarContagemNotificacoes();
@@ -83,12 +95,15 @@ export default function OrcamentosScreen() {
       "Excluir orçamento",
       "Tem certeza que deseja excluir este orçamento? Essa ação não pode ser desfeita.",
       [
-        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
         {
           text: "Excluir",
           style: "destructive",
-          onPress: () => excluirOrcamento(id),
-        },
+          onPress: () => excluirOrcamento(id)
+        }
       ]
     );
   }
@@ -98,8 +113,13 @@ export default function OrcamentosScreen() {
       await deletarOrcamento(id);
       carregarOrcamentos();
       carregarContagemNotificacoes();
-    } catch (error: any) {
-      Alert.alert("Erro", error?.response?.data?.message || "Não foi possível excluir o orçamento");
+    } catch (error: unknown) {
+      const mensagem =
+        error instanceof Error
+          ? error.message
+          : "Não foi possível excluir o orçamento";
+
+      Alert.alert("Erro", mensagem);
     }
   }
 
@@ -115,29 +135,46 @@ export default function OrcamentosScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.cabecalho}>
         <View>
-          <Text style={styles.saudacao}>Olá, {nomeUsuario} 👋</Text>
-          <Text style={styles.titulo}>Meus orçamentos</Text>
+          <Text style={styles.saudacao}>
+            Olá, {nomeUsuario} 👋
+          </Text>
+
+          <Text style={styles.titulo}>
+            Meus orçamentos
+          </Text>
         </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Notificacoes")}
-            style={styles.botaoNotificacoes}
-          >
-            <Ionicons name="notifications-outline" size={25} color="#fff" />
-            {naoLidas > 0 && (
-              <View style={styles.contadorNotificacoes}>
-                <Text style={styles.contadorTexto}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Notificacoes")}
+          style={styles.botaoNotificacoes}
+        >
+          <Ionicons
+            name="notifications-outline"
+            size={25}
+            color="#fff"
+          />
+
+          {naoLidas > 0 && (
+            <View style={styles.contadorNotificacoes}>
+              <Text style={styles.contadorTexto}>
+                {naoLidas > 9 ? "9+" : naoLidas}
+              </Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
           {fotoUsuario ? (
             <Image
               source={{ uri: `${apiUrl}${fotoUsuario}` }}
               style={styles.avatarPequeno}
             />
           ) : (
-            <Ionicons name="person-circle-outline" size={32} color="#a8adc0" />
+            <Ionicons
+              name="person-circle-outline"
+              size={32}
+              color="#a8adc0"
+            />
           )}
         </TouchableOpacity>
       </View>
@@ -156,35 +193,66 @@ export default function OrcamentosScreen() {
           />
         }
         ListEmptyComponent={
-          <Text style={styles.vazio}>Nenhum orçamento encontrado</Text>
+          <Text style={styles.vazio}>
+            Nenhum orçamento encontrado
+          </Text>
         }
         renderItem={({ item }) => {
           const status = statusInfo(item.status);
+
           return (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
-                <Text style={styles.empresa}>{item.empresa}</Text>
-                <View style={[styles.badge, { backgroundColor: status.bg }]}>
-                  <Text style={[styles.badgeTexto, { color: status.cor }]}>
+                <Text style={styles.empresa}>
+                  {item.empresa}
+                </Text>
+
+                <View
+                  style={[
+                    styles.badge,
+                    { backgroundColor: status.bg }
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.badgeTexto,
+                      { color: status.cor }
+                    ]}
+                  >
                     {status.label}
                   </Text>
                 </View>
               </View>
 
-              <Text style={styles.info}>{item.cnpj}</Text>
+              <Text style={styles.info}>
+                {item.cnpj}
+              </Text>
 
               <View style={styles.linha}>
-                <Ionicons name="location-outline" size={13} color="#a8adc0" />
-                <Text style={styles.infoLocal}>{item.local || "Não informado"}</Text>
+                <Ionicons
+                  name="location-outline"
+                  size={13}
+                  color="#a8adc0"
+                />
+
+                <Text style={styles.infoLocal}>
+                  {item.local || "Não informado"}
+                </Text>
               </View>
 
               <Text style={styles.info}>
-                Quantidade: <Text style={styles.destaque}>{item.quantidade_total_kg} kg</Text>
+                Quantidade:{" "}
+                <Text style={styles.destaque}>
+                  {item.quantidade_total_kg} kg
+                </Text>
               </Text>
 
-                <View style={styles.rodapeCard}>
+              <View style={styles.rodapeCard}>
                 <View>
-                  <Text style={styles.investimentoLabel}>Investimento</Text>
+                  <Text style={styles.investimentoLabel}>
+                    Investimento
+                  </Text>
+
                   <Text style={styles.investimentoValor}>
                     R$ {Number(item.investimento_total).toFixed(2)}
                   </Text>
@@ -197,19 +265,27 @@ export default function OrcamentosScreen() {
                         id: item.id,
                         empresaAtual: item.empresa,
                         cnpjAtual: item.cnpj,
-                        localAtual: item.local,
+                        localAtual: item.local
                       })
                     }
                     style={styles.botaoEditar}
                   >
-                    <Ionicons name="create-outline" size={18} color="#ff7a2a" />
+                    <Ionicons
+                      name="create-outline"
+                      size={18}
+                      color="#ff7a2a"
+                    />
                   </TouchableOpacity>
 
                   <TouchableOpacity
                     onPress={() => confirmarExclusao(item.id)}
                     style={styles.botaoExcluir}
                   >
-                    <Ionicons name="trash-outline" size={18} color="#ff6b6b" />
+                    <Ionicons
+                      name="trash-outline"
+                      size={18}
+                      color="#ff6b6b"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -230,7 +306,10 @@ export default function OrcamentosScreen() {
           style={styles.botaoGradiente}
         >
           <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.botaoTexto}>Novo orçamento</Text>
+
+          <Text style={styles.botaoTexto}>
+            Novo orçamento
+          </Text>
         </LinearGradient>
       </TouchableOpacity>
     </SafeAreaView>
@@ -238,74 +317,194 @@ export default function OrcamentosScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#0d1220", padding: 16 },
-  centro: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#0d1220" },
-  cabecalho: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  botaoNotificacoes: { width: 38, height: 38, alignItems: "center", justifyContent: "center", marginRight: 8 },
-  contadorNotificacoes: { position: "absolute", top: 0, right: 0, minWidth: 17, height: 17, borderRadius: 9, backgroundColor: "#ff4d1c", alignItems: "center", justifyContent: "center", paddingHorizontal: 3 },
-  contadorTexto: { color: "#fff", fontSize: 10, fontWeight: "bold" },
-  avatarPequeno: { width: 36, height: 36, borderRadius: 18, borderWidth: 1.5, borderColor: "#ff7a2a" },
-  saudacao: { color: "#a8adc0", fontSize: 14, marginBottom: 2 },
-  titulo: { color: "#ff7a2a", fontSize: 22, fontWeight: "bold", marginBottom: 16 },
-  erro: { color: "#ff6b6b", marginBottom: 12 },
-  vazio: { textAlign: "center", marginTop: 40, color: "#a8adc0" },
+  container: {
+    flex: 1,
+    backgroundColor: "#0d1220",
+    padding: 16
+  },
+
+  centro: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#0d1220"
+  },
+
+  cabecalho: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start"
+  },
+
+  botaoNotificacoes: {
+    width: 38,
+    height: 38,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8
+  },
+
+  contadorNotificacoes: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    minWidth: 17,
+    height: 17,
+    borderRadius: 9,
+    backgroundColor: "#ff4d1c",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 3
+  },
+
+  contadorTexto: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold"
+  },
+
+  avatarPequeno: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: "#ff7a2a"
+  },
+
+  saudacao: {
+    color: "#a8adc0",
+    fontSize: 14,
+    marginBottom: 2
+  },
+
+  titulo: {
+    color: "#ff7a2a",
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 16
+  },
+
+  erro: {
+    color: "#ff6b6b",
+    marginBottom: 12
+  },
+
+  vazio: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#a8adc0"
+  },
+
   card: {
     backgroundColor: "#171c2c",
     borderRadius: 14,
     borderWidth: 1,
     borderColor: "#232a3d",
     padding: 14,
-    marginBottom: 12,
+    marginBottom: 12
   },
+
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 4,
+    marginBottom: 4
   },
-  empresa: { color: "#fff", fontSize: 15, fontWeight: "bold", flex: 1, marginRight: 8 },
-  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
-  badgeTexto: { fontSize: 11, fontWeight: "600" },
-  info: { color: "#a8adc0", fontSize: 12, marginTop: 4 },
-  linha: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
-  infoLocal: { color: "#a8adc0", fontSize: 12 },
-  destaque: { color: "#fff", fontWeight: "600" },
-    rodapeCard: {
+
+  empresa: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "bold",
+    flex: 1,
+    marginRight: 8
+  },
+
+  badge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20
+  },
+
+  badgeTexto: {
+    fontSize: 11,
+    fontWeight: "600"
+  },
+
+  info: {
+    color: "#a8adc0",
+    fontSize: 12,
+    marginTop: 4
+  },
+
+  linha: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4
+  },
+
+  infoLocal: {
+    color: "#a8adc0",
+    fontSize: 12
+  },
+
+  destaque: {
+    color: "#fff",
+    fontWeight: "600"
+  },
+
+  rodapeCard: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
     borderTopColor: "#232a3d",
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "center"
   },
+
   botaoExcluir: {
     padding: 8,
     backgroundColor: "#3a1e1e",
-    borderRadius: 8,
+    borderRadius: 8
   },
-    botaoEditar: {
+
+  botaoEditar: {
     padding: 8,
     backgroundColor: "#3a2a1a",
-    borderRadius: 8,
+    borderRadius: 8
   },
-  investimentoLabel: { color: "#a8adc0", fontSize: 11 },
-  investimentoValor: { color: "#5fd08a", fontSize: 16, fontWeight: "bold" },
+
+  investimentoLabel: {
+    color: "#a8adc0",
+    fontSize: 11
+  },
+
+  investimentoValor: {
+    color: "#5fd08a",
+    fontSize: 16,
+    fontWeight: "bold"
+  },
+
   botaoFlutuante: {
     position: "absolute",
     bottom: 20,
     left: 16,
-    right: 16,
+    right: 16
   },
+
   botaoGradiente: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: 6,
     padding: 14,
-    borderRadius: 12,
+    borderRadius: 12
   },
-  botaoTexto: { color: "#fff", fontWeight: "bold", fontSize: 15 },
+
+  botaoTexto: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 15
+  }
 });
-
-

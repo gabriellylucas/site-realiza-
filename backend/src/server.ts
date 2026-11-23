@@ -22,6 +22,7 @@ app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 app.use(requestLogger);
+app.use("/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
 app.use("/users", userRoutes);
 app.use("/produtos", ProdutoRoutes);

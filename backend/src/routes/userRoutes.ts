@@ -8,6 +8,12 @@ const router = Router();
 
 router.post("/register", UserController.register);
 router.post("/login", UserController.login);
+router.post(
+  "/foto",
+  authMiddleware,
+  uploadFoto.single("foto"),
+  UserController.uploadFoto
+);
 router.get("/", authMiddleware, isAdmin, UserController.list);
 
 router.get("/perfil", authMiddleware, (req, res) => {

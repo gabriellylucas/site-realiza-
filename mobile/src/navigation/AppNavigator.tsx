@@ -1,5 +1,6 @@
-﻿import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+
 import LoginScreen from "../screens/LoginScreen";
 import OrcamentosScreen from "../screens/OrcamentosScreen";
 import CadastroScreen from "../screens/CadastroScreen";
@@ -34,31 +35,37 @@ export default function AppNavigator() {
           component={LoginScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="Cadastro"
           component={CadastroScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="Orcamentos"
           component={OrcamentosScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="CriarOrcamento"
           component={CriarOrcamentoScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="Perfil"
           component={PerfilScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="EditarOrcamento"
           component={EditarOrcamentoScreen}
           options={{ headerShown: false }}
         />
+
         <Stack.Screen
           name="Notificacoes"
           component={NotificacoesScreen}

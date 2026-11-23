@@ -7,7 +7,6 @@ node_modules/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
-<<<<<<< HEAD
 
 # Certificados locais do Nginx
 nginx/certs/
