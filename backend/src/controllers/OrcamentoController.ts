@@ -4,6 +4,8 @@ import { OrcamentoModel } from "../models/OrcamentoModel";
 import { gravarCache, invalidarCachePorPrefixo, lerCache } from "../services/cacheService";
 import { publicarEvento } from "../events/eventPublisher";
 import { CANAIS } from "../events/eventos";
+import type { OrcamentoUpdateDTO } from "../dtos/OrcamentoDTO";
+import type { PaginacaoDTO } from "../dtos/PaginacaoDTO";
 
 interface AuthRequest extends Request {
   userId: number;
@@ -18,18 +20,6 @@ interface MontarOrcamentoParams {
   dados: Orcamento;
   totalKg: number;
   invest: number;
-}
-
-interface OrcamentoUpdateBody {
-  empresa: string;
-  cnpj: string;
-  local: string | null;
-}
-
-interface Paginacao {
-  page: number;
-  limit: number;
-  offset: number;
 }
 
 function prefixoCacheOrcamentos(userId: number): string {
@@ -101,7 +91,7 @@ function montarOrcamento(params: MontarOrcamentoParams) {
   };
 }
 
-function obterPaginacao(req: Request): Paginacao {
+function obterPaginacao(req: Request): PaginacaoDTO {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
 
@@ -112,7 +102,7 @@ function obterPaginacao(req: Request): Paginacao {
   };
 }
 
-function obterBodyUpdate(body: Partial<OrcamentoUpdateBody>): OrcamentoUpdateBody {
+function obterBodyUpdate(body: Partial<OrcamentoUpdateDTO>): OrcamentoUpdateDTO {
   return {
     empresa: body.empresa || "",
     cnpj: body.cnpj || "",
@@ -176,7 +166,7 @@ async function criarOrcamento(userId: number, dados: Orcamento): Promise<void> {
 async function atualizarOrcamento(
   id: number,
   userId: number,
-  body: Partial<OrcamentoUpdateBody>
+  body: Partial<OrcamentoUpdateDTO>
 ): Promise<void> {
   const { empresa, cnpj, local } = obterBodyUpdate(body);
   if (!empresa || !cnpj) throw new Error("Campos obrigatórios");
@@ -259,7 +249,7 @@ export class OrcamentoController {
     try {
       const userId = (req as AuthRequest).userId;
       const id = Number(req.params.id);
-      await atualizarOrcamento(id, userId, req.body as Partial<OrcamentoUpdateBody>);
+      await atualizarOrcamento(id, userId, req.body as Partial<OrcamentoUpdateDTO>);
       return res.status(200).json({ message: "Orçamento atualizado com sucesso" });
     } catch (error) {
       const erroTratado = error instanceof Error ? error : new Error("Erro inesperado");
