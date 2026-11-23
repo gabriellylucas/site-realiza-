@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import Notificacoes from "../../components/Notificacoes/Notificacoes";
@@ -136,12 +137,14 @@ function CardOrcamento({
           ✏️ Editar
         </button>
 
-        <button
-          onClick={() => onExcluir(orcamento.id)}
-          className="btn-excluir"
-        >
-          🗑️ Excluir
-        </button>
+        {orcamento.status !== "APROVADO" && (
+          <button
+            onClick={() => onExcluir(orcamento.id)}
+            className="btn-excluir"
+          >
+            🗑️ Excluir
+          </button>
+        )}
       </div>
     </div>
   );
