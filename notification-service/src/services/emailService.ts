@@ -15,7 +15,7 @@ async function obterTransporte(): Promise<Transporter | null> {
 
   const modo = process.env.EMAIL_MODE;
 
-  // Modo de teste: caixa de e-mail falsa (Ethereal). Nada é entregue de verdade.
+  
   if (modo === "teste") {
     const conta = await nodemailer.createTestAccount();
 
@@ -31,7 +31,7 @@ async function obterTransporte(): Promise<Transporter | null> {
     return transporte;
   }
 
-  // Modo SMTP: envio real, configurado pelo .env
+ 
   if (modo === "smtp" && process.env.SMTP_HOST) {
     transporte = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
