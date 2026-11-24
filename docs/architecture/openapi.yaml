@@ -1,0 +1,1496 @@
+openapi: 3.0.3
+info:
+  title: API do Sistema Realiza Anti Chamas
+  description: 'Principais endpoints do Sistema Realiza: cadastro e login, orçamentos, produtos, contatos, área administrativa,
+    relatórios e notificações.
+
+
+    Todas as rotas são acessadas pelo Nginx com o prefixo `/api`. A rota `/api/notificacoes` é atendida pelo serviço de notificações;
+    as demais, pelo backend principal.
+
+    As rotas protegidas exigem o cabeçalho `Authorization: Bearer <token JWT>`.
+
+    '
+  version: 1.0.0
+servers:
+- url: https://realiza.local/api
+  description: Acesso pelo Nginx (proxy reverso)
+tags:
+- name: Sistema
+  description: Verificação de funcionamento da API
+- name: Usuários
+  description: Cadastro, login e perfil (contexto Identidade e Acesso)
+- name: Orçamentos
+  description: Solicitação e acompanhamento de orçamentos (contexto Orçamentos)
+- name: Produtos
+  description: Cadastro de produtos (contexto Catálogo e Institucional)
+- name: Contatos
+  description: Formulário de contato (contexto Catálogo e Institucional)
+- name: Administração
+  description: Funcionalidades restritas ao administrador (contexto Administração e Métricas)
+- name: Relatórios
+  description: Exportação de relatórios (somente administrador)
+- name: Notificações
+  description: API do serviço de notificações (contexto Notificações)
+security:
+- bearerAuth: []
+paths:
+  /:
+    get:
+      tags:
+      - Sistema
+      summary: Verificar se a API está no ar
+      description: Rota pública usada pelo healthcheck do Docker Compose.
+      security: []
+      responses:
+        '200':
+          description: API funcionando
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: API funcionando 🚀
+  /users/register:
+    post:
+      tags:
+      - Usuários
+      summary: Cadastrar usuário
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistroRequest'
+      responses:
+        '201':
+          description: Usuário cadastrado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: 'Dados inválidos: campos obrigatórios, e-mail inválido, CPF inválido ou senha fora do padrão (letras
+            e números, mínimo de 6 caracteres)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': &id001
+          $ref: '#/components/responses/ErroInterno'
+  /users/login:
+    post:
+      tags:
+      - Usuários
+      summary: Fazer login
+      description: Retorna um token JWT com validade de 1 hora.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: E-mail e senha são obrigatórios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401':
+          description: Senha inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /users:
+    get:
+      tags:
+      - Usuários
+      summary: Listar usuários (administrador)
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lista paginada de usuários
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UsuarioResumo'
+                  pagination:
+                    $ref: '#/components/schemas/Paginacao'
+        '401': &id002
+          $ref: '#/components/responses/NaoAutenticado'
+        '403':
+          $ref: '#/components/responses/AcessoRestritoAdmin'
+        '500': *id001
+  /users/perfil:
+    get:
+      tags:
+      - Usuários
+      summary: Verificar o acesso a uma rota protegida (perfil)
+      responses:
+        '200':
+          description: Token válido; a rota retorna apenas uma mensagem de confirmação
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Você acessou uma rota protegida 🔐
+        '401': *id002
+  /users/update/{id}:
+    put:
+      tags:
+      - Usuários
+      summary: Atualizar o próprio cadastro
+      description: O usuário só pode alterar o próprio cadastro. O e-mail não pode ser alterado.
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AtualizarUsuarioRequest'
+      responses:
+        '200':
+          description: Usuário atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: 'Dados inválidos: nome, senha e CPF são obrigatórios; CPF inválido; senha fora do padrão; ou tentativa
+            de alterar o e-mail (não permitido)'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '403':
+          description: Só é permitido alterar o próprio usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /users/delete/{id}:
+    delete:
+      tags:
+      - Usuários
+      summary: Excluir a própria conta
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Usuário deletado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: O usuário possui orçamentos cadastrados e precisa excluí-los antes de excluir a conta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '403':
+          description: Só é permitido excluir o próprio usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /users/foto:
+    post:
+      tags:
+      - Usuários
+      summary: Enviar foto de perfil
+      description: Aceita arquivos JPG, JPEG ou PNG de até 5 MB. A foto anterior do usuário é removida.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - foto
+              properties:
+                foto:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Foto atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Foto atualizada com sucesso
+                  fotoUrl:
+                    type: string
+                    example: /uploads/9f1c2d3e-4b5a-6789-abcd-ef0123456789.png
+        '400':
+          description: Nenhuma imagem enviada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '404':
+          description: Usuário não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500':
+          description: Erro interno. Também é retornado quando o arquivo não é JPG/JPEG/PNG ou passa de 5 MB, pois esses casos
+            não têm mensagem específica
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+  /orcamentos:
+    post:
+      tags:
+      - Orçamentos
+      summary: Solicitar orçamento
+      description: O sistema calcula a quantidade total de produto (kg) e o investimento estimado, cria o orçamento com o
+        status `EM_ANALISE`, vinculado ao usuário autenticado, e publica o evento `orcamento.criado` para o serviço de notificações.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrcamentoRequest'
+      responses:
+        '201':
+          description: Orçamento criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Empresa, CNPJ e equipamentos são obrigatórios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '500': *id001
+    get:
+      tags:
+      - Orçamentos
+      summary: Listar os meus orçamentos
+      description: Retorna apenas os orçamentos do usuário autenticado. A resposta pode vir do cache (Redis).
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lista paginada dos orçamentos do usuário autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orcamentos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrcamentoResumo'
+                  pagination:
+                    $ref: '#/components/schemas/Paginacao'
+        '401': *id002
+        '500': *id001
+  /orcamentos/{id}:
+    get:
+      tags:
+      - Orçamentos
+      summary: Consultar um orçamento
+      description: Somente o dono do orçamento pode consultá-lo.
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Orçamento encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Orcamento'
+        '401': *id002
+        '403':
+          description: Você não tem permissão (o orçamento é de outro usuário)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '404':
+          description: Orçamento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+    put:
+      tags:
+      - Orçamentos
+      summary: Editar um orçamento
+      description: Somente o dono pode editar. Permite alterar apenas empresa, CNPJ e local; os equipamentos e os valores
+        calculados não mudam.
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrcamentoUpdateRequest'
+      responses:
+        '200':
+          description: Orçamento atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Campos obrigatórios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '403':
+          description: Você não tem permissão (o orçamento é de outro usuário)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '404':
+          description: Orçamento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+    delete:
+      tags:
+      - Orçamentos
+      summary: Excluir um orçamento
+      description: Somente o dono pode excluir. Orçamentos com o status `APROVADO` não podem ser excluídos.
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Orçamento deletado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '403':
+          description: Você não tem permissão (o orçamento é de outro usuário) ou o orçamento já foi aprovado e não pode ser
+            excluído
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '404':
+          description: Orçamento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /orcamentos/{id}/marcar-lido:
+    patch:
+      tags:
+      - Orçamentos
+      summary: Marcar a mudança de status como vista pelo cliente
+      description: 'Define `status_lido = 1` no orçamento do usuário autenticado. O backend não verifica se o orçamento existe
+        nem se pertence ao usuário: o `UPDATE` usa `WHERE id = ? AND user_id = ?` e, se nenhuma linha for afetada, a resposta
+        continua sendo 200 (não retorna 404 nem 403). Divergência a corrigir no backend.'
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Marcado como lido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '500': *id001
+  /produtos:
+    get:
+      tags:
+      - Produtos
+      summary: Listar produtos
+      description: A resposta pode vir do cache (Redis).
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Lista paginada de produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  produtos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Produto'
+                  pagination:
+                    $ref: '#/components/schemas/Paginacao'
+        '401': *id002
+        '500': *id001
+    post:
+      tags:
+      - Produtos
+      summary: Cadastrar produto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoRequest'
+      responses:
+        '201':
+          description: Produto criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Todos os campos são obrigatórios, ou o preço não é maior que zero
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '500': *id001
+  /produtos/{id}:
+    put:
+      tags:
+      - Produtos
+      summary: Atualizar produto
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProdutoRequest'
+      responses:
+        '200':
+          description: Produto atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Todos os campos são obrigatórios, ou o preço não é maior que zero
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+    delete:
+      tags:
+      - Produtos
+      summary: Excluir produto
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Produto deletado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /contatos:
+    post:
+      tags:
+      - Contatos
+      summary: Enviar mensagem pelo formulário de contato
+      description: Rota pública, não exige login.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContatoRequest'
+      responses:
+        '201':
+          description: Mensagem enviada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Todos os campos são obrigatórios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+    get:
+      tags:
+      - Contatos
+      summary: Listar mensagens de contato
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 5
+        description: Itens por página (padrão 5)
+      responses:
+        '200':
+          description: Lista paginada de mensagens
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  contatos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Contato'
+                  pagination:
+                    $ref: '#/components/schemas/Paginacao'
+        '401': *id002
+        '500': *id001
+  /contatos/{id}:
+    get:
+      tags:
+      - Contatos
+      summary: Consultar uma mensagem de contato
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Mensagem encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contato'
+        '401': *id002
+        '404':
+          description: Contato não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+    put:
+      tags:
+      - Contatos
+      summary: Atualizar uma mensagem de contato
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContatoRequest'
+      responses:
+        '200':
+          description: Mensagem atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Todos os campos são obrigatórios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '404':
+          description: Contato não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+    delete:
+      tags:
+      - Contatos
+      summary: Excluir uma mensagem de contato
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Mensagem deletada com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '404':
+          description: Contato não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /admin/dashboard:
+    get:
+      tags:
+      - Administração
+      summary: Painel com métricas (administrador)
+      responses:
+        '200':
+          description: Indicadores dos orçamentos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+        '401': *id002
+        '403': &id003
+          $ref: '#/components/responses/AcessoRestritoAdmin'
+        '500': *id001
+  /admin/orcamentos:
+    get:
+      tags:
+      - Administração
+      summary: Listar todos os orçamentos (administrador)
+      responses:
+        '200':
+          description: Lista de orçamentos de todos os usuários
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orcamentos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/OrcamentoAdmin'
+        '401': *id002
+        '403': *id003
+        '500': *id001
+  /admin/orcamentos/{id}/status:
+    patch:
+      tags:
+      - Administração
+      summary: Alterar o status de um orçamento (administrador)
+      description: Altera o status e marca a mudança como não vista pelo cliente. Quando o novo status é `APROVADO` ou `RECUSADO`
+        e é diferente do anterior, publica o evento `orcamento.aprovado` ou `orcamento.recusado` para o serviço de notificações.
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - status
+              properties:
+                status:
+                  $ref: '#/components/schemas/StatusOrcamento'
+      responses:
+        '200':
+          description: Status atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Status inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '403': *id003
+        '404':
+          description: Orçamento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500': *id001
+  /admin/usuarios:
+    get:
+      tags:
+      - Administração
+      summary: Listar usuários (administrador)
+      responses:
+        '200':
+          description: Lista de todos os usuários
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  usuarios:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UsuarioResumo'
+        '401': *id002
+        '403': *id003
+        '500': *id001
+  /admin/usuarios/{id}:
+    delete:
+      tags:
+      - Administração
+      summary: Excluir um usuário (administrador)
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Usuário excluído com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: O administrador não pode excluir a própria conta por esta rota
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '403': *id003
+        '500': *id001
+  /relatorios/orcamentos:
+    get:
+      tags:
+      - Relatórios
+      summary: Exportar relatório de orçamentos (administrador)
+      description: Gera um arquivo Excel (`orcamentos.xlsx`) ou PDF (`orcamentos.pdf`) com os orçamentos que atendem aos filtros
+        informados. Todos os filtros são opcionais.
+      parameters:
+      - name: formato
+        in: query
+        required: false
+        schema:
+          type: string
+          default: xlsx
+          example: pdf
+        description: 'Formato do arquivo: `xlsx` (padrão) ou `pdf`. O backend não valida este parâmetro: qualquer valor diferente
+          de `pdf` gera Excel.'
+      - name: dataInicio
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Data inicial (AAAA-MM-DD), a partir de 00:00:00.
+      - name: dataFim
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date
+        description: Data final (AAAA-MM-DD), até 23:59:59.
+      - name: status
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/StatusOrcamento'
+      - name: cliente
+        in: query
+        required: false
+        schema:
+          type: string
+        description: Texto buscado no nome do cliente ou no nome da empresa.
+      responses:
+        '200':
+          description: Arquivo do relatório, no formato solicitado
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '401': *id002
+        '403': *id003
+        '500':
+          description: Erro ao gerar relatório
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+  /health:
+    get:
+      tags:
+      - Notificações
+      summary: Healthcheck do serviço de notificações (uso interno)
+      description: Rota interna do notification-service, na porta 3001. O Nginx só encaminha `/api/notificacoes` para esse
+        serviço, então `/health` não é acessível externamente por `/api`; só dentro da rede do Docker Compose.
+      security: []
+      servers:
+      - url: http://notification-service:3001
+        description: Rede interna do Docker Compose
+      responses:
+        '200':
+          description: Serviço no ar
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  servico:
+                    type: string
+                    example: notification-service
+                  status:
+                    type: string
+                    example: ok
+                  redis:
+                    type: string
+                    description: Estado da conexão com o Redis
+                    example: ready
+  /notificacoes:
+    get:
+      tags:
+      - Notificações
+      summary: Listar as notificações do usuário
+      description: Atendida pelo serviço de notificações, por meio de uma rota no Nginx, com o mesmo token JWT do site. O
+        administrador vê os avisos de novos orçamentos; o cliente vê apenas os avisos dos próprios orçamentos.
+      parameters:
+      - $ref: '#/components/parameters/Page'
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 50
+        description: Itens por página (padrão 10, máximo 50)
+      responses:
+        '200':
+          description: Notificações do usuário autenticado, com a contagem de não lidas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificacoes:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notificacao'
+                  naoLidas:
+                    type: integer
+                    description: Quantidade de notificações não lidas
+                    example: 3
+                  pagination:
+                    $ref: '#/components/schemas/Paginacao'
+        '401': *id002
+        '500':
+          description: Erro ao buscar notificações
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+  /notificacoes/{id}/lida:
+    patch:
+      tags:
+      - Notificações
+      summary: Marcar uma notificação como lida
+      parameters:
+      - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Notificação marcada como lida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '400':
+          description: Id inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '401': *id002
+        '404':
+          description: Notificação não encontrada (ou não pertence ao usuário)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+        '500':
+          description: Erro ao marcar notificação como lida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Mensagem'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 1
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 10
+      description: Itens por página (padrão 10)
+  responses:
+    NaoAutenticado:
+      description: Token não fornecido ou inválido
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Mensagem'
+    AcessoRestritoAdmin:
+      description: Acesso restrito a administradores
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Mensagem'
+    ErroInterno:
+      description: Erro interno ao processar a operação
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Mensagem'
+  schemas:
+    Mensagem:
+      type: object
+      properties:
+        message:
+          type: string
+    Paginacao:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 25
+        totalPages:
+          type: integer
+          example: 3
+    RegistroRequest:
+      type: object
+      required:
+      - nome
+      - email
+      - senha
+      - cpf
+      properties:
+        nome:
+          type: string
+          example: Maria Silva
+        email:
+          type: string
+          format: email
+          example: maria@email.com
+        senha:
+          type: string
+          format: password
+          description: Letras e números, mínimo de 6 caracteres.
+        cpf:
+          type: string
+          description: CPF válido (com ou sem pontuação).
+          example: '52998224725'
+    LoginRequest:
+      type: object
+      required:
+      - email
+      - senha
+      properties:
+        email:
+          type: string
+          format: email
+        senha:
+          type: string
+          format: password
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Login realizado com sucesso
+        token:
+          type: string
+          description: Token JWT (validade de 1 hora)
+        user:
+          $ref: '#/components/schemas/Usuario'
+    Usuario:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        cpf:
+          type: string
+        role:
+          type: string
+          enum:
+          - admin
+          - usuario
+        foto_url:
+          type: string
+          nullable: true
+    UsuarioResumo:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        cpf:
+          type: string
+        role:
+          type: string
+          enum:
+          - admin
+          - usuario
+        created_at:
+          type: string
+          format: date-time
+    AtualizarUsuarioRequest:
+      type: object
+      required:
+      - nome
+      - senha
+      - cpf
+      properties:
+        nome:
+          type: string
+        senha:
+          type: string
+          format: password
+          description: Letras e números, mínimo de 6 caracteres.
+        cpf:
+          type: string
+        email:
+          type: string
+          format: email
+          description: Opcional; se enviado, deve ser igual ao e-mail atual (o e-mail não pode ser alterado).
+    StatusOrcamento:
+      type: string
+      enum:
+      - EM_ANALISE
+      - APROVADO
+      - RECUSADO
+    Equipamento:
+      type: object
+      properties:
+        tipo:
+          type: string
+          enum:
+          - ABT
+          - ACF
+          - ABTS
+          - AT
+          - KIT
+          example: ABT
+        litragem:
+          type: number
+          example: 5000
+        quantidade:
+          type: integer
+          example: 5
+    Solicitante:
+      type: object
+      required:
+      - nome
+      - email
+      - cpf
+      - telefone
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        cpf:
+          type: string
+        telefone:
+          type: string
+    OrcamentoRequest:
+      type: object
+      required:
+      - empresa
+      - cnpj
+      - equipamentos
+      - solicitante
+      properties:
+        solicitante:
+          allOf:
+          - $ref: '#/components/schemas/Solicitante'
+          description: 'Dados do solicitante (nome, e-mail, CPF e telefone). Os quatro campos (nome, e-mail, CPF e telefone)
+            são necessários para uma requisição válida. O controller não valida a presença de `solicitante` nem desses campos:
+            se faltarem, a criação falha com erro 500, e não com 400. Divergência a corrigir no backend.'
+        empresa:
+          type: string
+        cnpj:
+          type: string
+        local:
+          type: string
+          nullable: true
+        equipamentos:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Equipamento'
+    OrcamentoUpdateRequest:
+      type: object
+      required:
+      - empresa
+      - cnpj
+      properties:
+        empresa:
+          type: string
+        cnpj:
+          type: string
+        local:
+          type: string
+          nullable: true
+    Orcamento:
+      type: object
+      description: Orçamento completo (consulta de um orçamento).
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+        cpf:
+          type: string
+        telefone:
+          type: string
+        empresa:
+          type: string
+        cnpj:
+          type: string
+        local:
+          type: string
+          nullable: true
+        equipamentos:
+          type: string
+          description: Lista de equipamentos em formato JSON (texto)
+          example: '[{"tipo":"ABT","litragem":5000,"quantidade":5}]'
+        quantidade_total_kg:
+          type: string
+          example: '12.50'
+          description: Valor decimal (o banco retorna como texto)
+        investimento_total:
+          type: string
+          example: '49500.00'
+          description: Valor decimal (o banco retorna como texto)
+        status:
+          $ref: '#/components/schemas/StatusOrcamento'
+        status_lido:
+          type: integer
+          enum:
+          - 0
+          - 1
+          description: 1 quando o cliente já viu a última mudança de status
+        created_at:
+          type: string
+          format: date-time
+    OrcamentoResumo:
+      type: object
+      description: Orçamento na lista do cliente.
+      properties:
+        id:
+          type: integer
+        empresa:
+          type: string
+        cnpj:
+          type: string
+        local:
+          type: string
+          nullable: true
+        equipamentos:
+          type: string
+          description: Lista de equipamentos em formato JSON (texto)
+        quantidade_total_kg:
+          type: string
+          example: '12.50'
+          description: Valor decimal (o banco retorna como texto)
+        investimento_total:
+          type: string
+          example: '49500.00'
+          description: Valor decimal (o banco retorna como texto)
+        status:
+          $ref: '#/components/schemas/StatusOrcamento'
+        status_lido:
+          type: integer
+          enum:
+          - 0
+          - 1
+        created_at:
+          type: string
+          format: date-time
+    OrcamentoAdmin:
+      type: object
+      description: Orçamento na lista do administrador.
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        empresa:
+          type: string
+        cnpj:
+          type: string
+        local:
+          type: string
+          nullable: true
+        equipamentos:
+          type: string
+          description: Lista de equipamentos em formato JSON (texto)
+        quantidade_total_kg:
+          type: string
+          example: '12.50'
+          description: Valor decimal (o banco retorna como texto)
+        investimento_total:
+          type: string
+          example: '49500.00'
+          description: Valor decimal (o banco retorna como texto)
+        status:
+          $ref: '#/components/schemas/StatusOrcamento'
+        created_at:
+          type: string
+          format: date-time
+    UltimoOrcamento:
+      type: object
+      description: Orçamento na lista dos últimos orçamentos do painel.
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        empresa:
+          type: string
+        quantidade_total_kg:
+          type: string
+          example: '12.50'
+          description: Valor decimal (o banco retorna como texto)
+        investimento_total:
+          type: string
+          example: '49500.00'
+          description: Valor decimal (o banco retorna como texto)
+        status:
+          $ref: '#/components/schemas/StatusOrcamento'
+        created_at:
+          type: string
+          format: date-time
+    Dashboard:
+      type: object
+      properties:
+        cards:
+          type: object
+          properties:
+            totalOrcamentos:
+              type: integer
+            pendentes:
+              type: integer
+            aprovados:
+              type: integer
+            recusados:
+              type: integer
+            investimentoTotal:
+              type: number
+            kgTotal:
+              type: number
+        orcamentosPorMes:
+          type: array
+          description: Até 12 meses, em ordem crescente
+          items:
+            type: object
+            properties:
+              mes:
+                type: string
+                example: 2026-11
+              total:
+                type: integer
+        distribuicaoPorStatus:
+          type: array
+          items:
+            type: object
+            properties:
+              status:
+                $ref: '#/components/schemas/StatusOrcamento'
+              total:
+                type: integer
+        ultimosOrcamentos:
+          type: array
+          description: Os 5 orçamentos mais recentes
+          items:
+            $ref: '#/components/schemas/UltimoOrcamento'
+    Produto:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        descricao:
+          type: string
+        preco:
+          type: number
+          example: 199.9
+    ProdutoRequest:
+      type: object
+      required:
+      - nome
+      - descricao
+      - preco
+      properties:
+        nome:
+          type: string
+        descricao:
+          type: string
+        preco:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+          description: Deve ser maior que zero.
+    Contato:
+      type: object
+      properties:
+        id:
+          type: integer
+        nome:
+          type: string
+        email:
+          type: string
+        mensagem:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ContatoRequest:
+      type: object
+      required:
+      - nome
+      - email
+      - mensagem
+      properties:
+        nome:
+          type: string
+        email:
+          type: string
+          format: email
+        mensagem:
+          type: string
+    Notificacao:
+      type: object
+      properties:
+        id:
+          type: integer
+        tipo:
+          type: string
+          enum:
+          - orcamento.criado
+          - orcamento.aprovado
+          - orcamento.recusado
+        orcamento_id:
+          type: integer
+        mensagem:
+          type: string
+          example: 'Seu orçamento #12 foi aprovado'
+        lida:
+          type: integer
+          enum:
+          - 0
+          - 1
+          description: 1 quando a notificação já foi lida
+        created_at:
+          type: string
+          format: date-time
