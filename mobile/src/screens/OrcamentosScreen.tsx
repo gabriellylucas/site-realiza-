@@ -50,8 +50,8 @@ export default function OrcamentosScreen() {
       setOrcamentos(resultado.orcamentos);
 
       const userJson = await AsyncStorage.getItem("user");
-        if (userJson) {
-      const user = JSON.parse(userJson);
+      if (userJson) {
+        const user = JSON.parse(userJson);
         setNomeUsuario(user.nome?.split(" ")[0] || "");
         setFotoUsuario(user.foto_url || null);
       }
@@ -71,7 +71,7 @@ export default function OrcamentosScreen() {
     }
   }
 
-   useFocusEffect(
+  useFocusEffect(
     useCallback(() => {
       carregarOrcamentos();
       carregarContagemNotificacoes();
@@ -119,18 +119,19 @@ export default function OrcamentosScreen() {
           <Text style={styles.titulo}>Meus orçamentos</Text>
         </View>
 
-          <TouchableOpacity
-            onPress={() => navigation.navigate("Notificacoes")}
-            style={styles.botaoNotificacoes}
-          >
-            <Ionicons name="notifications-outline" size={25} color="#fff" />
-            {naoLidas > 0 && (
-              <View style={styles.contadorNotificacoes}>
-                <Text style={styles.contadorTexto}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("Notificacoes")}
+          style={styles.botaoNotificacoes}
+        >
+          <Ionicons name="notifications-outline" size={25} color="#fff" />
+          {naoLidas > 0 && (
+            <View style={styles.contadorNotificacoes}>
+              <Text style={styles.contadorTexto}>{naoLidas > 9 ? "9+" : naoLidas}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
           {fotoUsuario ? (
             <Image
               source={{ uri: `${apiUrl}${fotoUsuario}` }}
@@ -160,6 +161,7 @@ export default function OrcamentosScreen() {
         }
         renderItem={({ item }) => {
           const status = statusInfo(item.status);
+
           return (
             <View style={styles.card}>
               <View style={styles.cardHeader}>
@@ -182,7 +184,7 @@ export default function OrcamentosScreen() {
                 Quantidade: <Text style={styles.destaque}>{item.quantidade_total_kg} kg</Text>
               </Text>
 
-                <View style={styles.rodapeCard}>
+              <View style={styles.rodapeCard}>
                 <View>
                   <Text style={styles.investimentoLabel}>Investimento</Text>
                   <Text style={styles.investimentoValor}>
@@ -205,12 +207,14 @@ export default function OrcamentosScreen() {
                     <Ionicons name="create-outline" size={18} color="#ff7a2a" />
                   </TouchableOpacity>
 
-                  <TouchableOpacity
-                    onPress={() => confirmarExclusao(item.id)}
-                    style={styles.botaoExcluir}
-                  >
-                    <Ionicons name="trash-outline" size={18} color="#ff6b6b" />
-                  </TouchableOpacity>
+                  {item.status?.toUpperCase() !== "APROVADO" && (
+                    <TouchableOpacity
+                      onPress={() => confirmarExclusao(item.id)}
+                      style={styles.botaoExcluir}
+                    >
+                      <Ionicons name="trash-outline" size={18} color="#ff6b6b" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             </View>
@@ -270,7 +274,7 @@ const styles = StyleSheet.create({
   linha: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 4 },
   infoLocal: { color: "#a8adc0", fontSize: 12 },
   destaque: { color: "#fff", fontWeight: "600" },
-    rodapeCard: {
+  rodapeCard: {
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
@@ -284,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3a1e1e",
     borderRadius: 8,
   },
-    botaoEditar: {
+  botaoEditar: {
     padding: 8,
     backgroundColor: "#3a2a1a",
     borderRadius: 8,
@@ -307,5 +311,3 @@ const styles = StyleSheet.create({
   },
   botaoTexto: { color: "#fff", fontWeight: "bold", fontSize: 15 },
 });
-
-

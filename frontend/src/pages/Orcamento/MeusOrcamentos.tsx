@@ -136,12 +136,14 @@ function CardOrcamento({
           ✏️ Editar
         </button>
 
-        <button
-          onClick={() => onExcluir(orcamento.id)}
-          className="btn-excluir"
-        >
-          🗑️ Excluir
-        </button>
+        {orcamento.status !== "APROVADO" && (
+          <button
+            onClick={() => onExcluir(orcamento.id)}
+            className="btn-excluir"
+          >
+            🗑️ Excluir
+          </button>
+        )}
       </div>
     </div>
   );

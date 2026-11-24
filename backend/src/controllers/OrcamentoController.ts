@@ -13,6 +13,7 @@ interface AuthRequest extends Request {
 
 interface OrcamentoComDono {
   user_id: number;
+  status: string;
 }
 
 interface MontarOrcamentoParams {
@@ -129,6 +130,10 @@ function tratarErro(error: Error, res: Response, msg: string) {
     return res.status(403).json({ message: "Você não tem permissão" });
   }
 
+  if (error.message === "Não é possível excluir um orçamento aprovado") {
+    return res.status(403).json({ message: error.message });
+  }
+
   if (error.message.includes("obrigatórios")) {
     return res.status(400).json({ message: error.message });
   }
@@ -180,6 +185,11 @@ async function atualizarOrcamento(
 async function deletarOrcamento(id: number, userId: number): Promise<void> {
   const orcamento = await buscarOrcamento(id);
   validarDono(orcamento, userId);
+
+  if (orcamento.status === "APROVADO") {
+    throw new Error("Não é possível excluir um orçamento aprovado");
+  }
+
   await OrcamentoModel.delete(id);
   await invalidarCacheOrcamentos(userId);
 }
